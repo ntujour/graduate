@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>指導學生狀態 | NTU Journalism</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <style>
+    :root {
+      color-scheme: light;
+      --portal-primary: #0369a1;
+      --portal-primary-accent: #0ea5e9;
+      --portal-primary-strong: #0f172a;
+      --portal-surface: #ffffff;
+      --portal-surface-soft: #f8fafc;
+      --portal-border: rgba(148, 163, 184, 0.35);
+      --portal-border-strong: rgba(14, 165, 233, 0.45);
+      --portal-muted: #64748b;
+      --portal-muted-strong: #475569;
+      --portal-highlight-bg: #ede9fe;
+      --portal-highlight: #6d28d9;
+      --portal-radius: 3px;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    main {
+      width: 100%;
+    }
+
+    #sheet-table {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .faculty-container {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      gap: 1.25rem;
+    }
+
+    .rounded-2xl,
+    .rounded-xl,
+    .rounded-lg,
+    .rounded-md,
+    .rounded {
+      border-radius: var(--portal-radius) !important;
+    }
+
+    .faculty-section {
+      width: 100%;
+      border-radius: var(--portal-radius);
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      background: var(--portal-surface-soft);
+      padding: 1.5rem;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    }
+
+    .faculty-section h3 {
+      margin: 0 0 0.75rem 0;
+      font-size: 1.05rem;
+      color: var(--portal-primary);
+      letter-spacing: 0.03em;
+    }
+
+    .teacher-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .teacher-name {
+      font-weight: 600;
+      color: var(--portal-muted-strong);
+      margin-right: 4px;
+    }
+
+    .student-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(14, 165, 233, 0.12);
+      color: #0369a1;
+      border-radius: var(--portal-radius);
+      padding: 0.15rem 0.6rem;
+      margin: 2px 4px 2px 0;
+      font-size: 12px;
+      border: 1px solid rgba(14, 165, 233, 0.35);
+      transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+      cursor: pointer;
+    }
+
+    .student-badge:hover {
+      background: #0ea5e9;
+      color: #fff;
+      border-color: #0369a1;
+      transform: translateY(-1px);
+    }
+
+    .student-badge.research {
+      background: var(--portal-highlight-bg);
+      color: var(--portal-highlight);
+      border: 1px solid rgba(109, 40, 217, 0.3);
+    }
+
+    .student-badge.research:hover {
+      background: #7c3aed;
+      color: #fff;
+      border-color: #5b21b6;
+    }
+
+    .student-badge.unadvised {
+      background: rgba(148, 163, 184, 0.15);
+      color: var(--portal-muted-strong);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+    }
+
+    .student-badge.unadvised:hover {
+      background: rgba(100, 116, 139, 0.3);
+      color: #fff;
+      border-color: rgba(100, 116, 139, 0.6);
+    }
+
+    .advisor-section,
+    .year-section {
+      border-radius: var(--portal-radius);
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      background: rgba(255, 255, 255, 0.96);
+      padding: 1.75rem;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    }
+
+    .advisor-section h2,
+    .year-section h3 {
+      margin: 0 0 0.75rem 0;
+      color: var(--portal-primary);
+      font-weight: 600;
+    }
+
+    .advisor-text {
+      color: var(--portal-muted);
+      font-size: 13px;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 0.75rem 0;
+    }
+
+    th,
+    td {
+      border: 1px solid rgba(203, 213, 225, 0.8);
+      padding: 6px 8px;
+      font-size: 0.9rem;
+    }
+
+    th {
+      background: rgba(226, 232, 240, 0.6);
+      font-weight: 600;
+      color: var(--portal-muted-strong);
+    }
+
+    .tab-toggle {
+      padding: 0.45rem 1.1rem;
+      border-radius: 9999px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      background: rgba(248, 250, 252, 0.9);
+      color: var(--portal-muted-strong);
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .tab-toggle:hover {
+      border-color: rgba(14, 165, 233, 0.45);
+      color: var(--portal-primary);
+    }
+
+    .tab-toggle.active {
+      background: rgba(14, 165, 233, 0.18);
+      border-color: rgba(14, 165, 233, 0.5);
+      color: var(--portal-primary);
+      box-shadow: 0 10px 25px -18px rgba(14, 165, 233, 0.55);
+    }
+
+    @media (max-width: 768px) {
+      .faculty-container {
+        flex-direction: column;
+      }
+
+      .faculty-section {
+        flex: 1 1 auto;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-100 text-slate-800 antialiased">
+  <header class="sticky top-0 border-b border-slate-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/70">
+    <div class="mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-4">
+      <a href="index.html" class="text-lg font-semibold tracking-wide text-sky-800 transition-colors hover:text-sky-600">NTU Journalism Services Portal</a>
+      <a href="index_old.html" class="text-sm font-medium text-slate-500 transition hover:text-sky-600">回到舊版</a>
+    </div>
+  </header>
+
+  <main class="mx-auto flex w-full max-w-5xl flex-col gap-10 px-4 py-12">
+    <section class="space-y-3">
+      <h1 class="text-3xl font-semibold tracking-tight text-sky-900">指導學生狀態</h1>
+      <p class="max-w-3xl text-sm leading-relaxed text-slate-600">了解每位老師現在的指導學生數以及畢業生的論文題目，掌握即時的指導資源與研究題材。</p>
+    </section>
+
+    <section class="rounded-2xl border border-slate-200 bg-white/90 p-6 shadow-sm shadow-slate-200/60">
+      <div class="space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <h2 class="text-lg font-semibold text-sky-800">學生指導中</h2>
+          <span class="text-xs font-medium uppercase tracking-widest text-slate-400">資料沒有每日同步更新</span>
+        </div>
+        <div id="sheet-table" class="flex flex-col gap-6"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-slate-200 bg-white/90">
+    <div class="mx-auto flex w-full max-w-5xl flex-col gap-1 px-4 py-6 text-xs text-slate-400">
+      <span>國立臺灣大學 新聞研究所 | NTU Graduate Institute of Journalism</span>
+      <span>如有建議或需求，請聯繫系辦。</span>
+    </div>
+  </footer>
+  <script>
+    d3.csv('data/advisee.csv')
+      .then(data => {
+        if (!data || data.length === 0) {
+          document.getElementById('sheet-table').innerText = '無資料';
+          return;
+        }
+
+        // 依指導老師分組（支援多位老師）
+        const advisorMap = {};
+        
+        data.forEach(row => {
+          const advisorField = row['指導老師']?.trim();
+          const student = row['學生姓名']?.trim();
+          const year = row['屆次']?.trim();
+          const thesisTitle = (row['論文題目'] || '').trim();
+          
+          if (!student) return;
+
+          // 處理有指導老師的學生
+          if (advisorField) {
+            const advisors = advisorField.split(/、|,|，/).map(name => name.trim()).filter(Boolean);
+            advisors.forEach(advisor => {
+              if (!advisorMap[advisor]) advisorMap[advisor] = { students: [] };
+              advisorMap[advisor].students.push(row);
+            });
+          }
+        });
+
+        // 產生顯示區塊
+        const container = document.getElementById('sheet-table');
+        container.innerHTML = '';
+
+        // 專任老師順序
+        const fulltimeAdvisors = ['林麗雲', '洪貞玲', '林照真', '謝吉隆', '劉好迪', '蔡蕙如', '詹怡宜'];
+        // 兼任老師順序
+        const adjunctAdvisors = ['李志德', '劉力仁', '梁玉芳', '方德琳', '王泰俐', '蕭富元', '鄭凱駿', '黃哲斌', '李雪莉', '陳順孝'];
+
+        // 建立教師區塊容器
+        const facultyContainer = document.createElement('div');
+        facultyContainer.className = 'faculty-container';
+
+        // 建立專任教師區塊
+        const fulltimeSection = document.createElement('div');
+        fulltimeSection.className = 'faculty-section';
+        const fulltimeTitle = document.createElement('h3');
+        fulltimeTitle.textContent = '專任教師';
+        fulltimeSection.appendChild(fulltimeTitle);
+
+        const fulltimeList = document.createElement('ul');
+        fulltimeList.className = 'teacher-list';
+
+        // 只顯示專任老師
+        fulltimeAdvisors.forEach(advisor => {
+          if (!advisorMap[advisor]) return;
+          const li = document.createElement('li');
+          
+          // 老師名字
+          const nameSpan = document.createElement('span');
+          nameSpan.className = 'teacher-name';
+          nameSpan.textContent = advisor + '：';
+          li.appendChild(nameSpan);
+
+          // 只顯示指導中的學生
+          advisorMap[advisor].students.forEach(row => {
+            const thesisTitle = (row['論文題目'] || '').trim();
+            const advisorField = (row['指導老師'] || '').trim();
+            if (thesisTitle === '在學中' && advisorField) {
+              const badge = document.createElement('span');
+              if ((row['論文類型'] || '').trim() === '研究組') {
+                badge.className = 'student-badge research';
+              } else {
+                badge.className = 'student-badge';
+              }
+              badge.textContent = `${row['學生姓名']}(${row['屆次']})`;
+              li.appendChild(badge);
+            }
+          });
+          fulltimeList.appendChild(li);
+        });
+        fulltimeSection.appendChild(fulltimeList);
+        facultyContainer.appendChild(fulltimeSection);
+
+        // 建立實務教師區塊
+        const adjunctSection = document.createElement('div');
+        adjunctSection.className = 'faculty-section';
+        const adjunctTitle = document.createElement('h3');
+        adjunctTitle.textContent = '實務教師';
+        adjunctSection.appendChild(adjunctTitle);
+
+        const adjunctList = document.createElement('ul');
+        adjunctList.className = 'teacher-list';
+
+        // 只顯示指定兼任老師
+        adjunctAdvisors.forEach(advisor => {
+          if (!advisorMap[advisor]) return;
+          const li = document.createElement('li');
+          
+          // 老師名字
+          const nameSpan = document.createElement('span');
+          nameSpan.className = 'teacher-name';
+          nameSpan.textContent = advisor + '：';
+          li.appendChild(nameSpan);
+
+          // 只顯示指導中的學生
+          advisorMap[advisor].students.forEach(row => {
+            const thesisTitle = (row['論文題目'] || '').trim();
+            const advisorField = (row['指導老師'] || '').trim();
+            if (thesisTitle === '在學中' && advisorField) {
+              const badge = document.createElement('span');
+              if ((row['論文類型'] || '').trim() === '研究組') {
+                badge.className = 'student-badge research';
+              } else {
+                badge.className = 'student-badge';
+              }
+              badge.textContent = `${row['學生姓名']}(${row['屆次']})`;
+              li.appendChild(badge);
+            }
+          });
+          adjunctList.appendChild(li);
+        });
+        adjunctSection.appendChild(adjunctList);
+        facultyContainer.appendChild(adjunctSection);
+
+        container.appendChild(facultyContainer);
+
+        // ===== 新增簡表：只列出論文題目不是在學中或休學的學生，分屆次 =====
+        // 先分組
+        const completedByYear = {};
+        const completedByAdvisor = {};
+        data.forEach(row => {
+          const thesisTitle = (row['論文題目'] || '').trim();
+          const year = (row['屆次'] || '').trim();
+          const advisorField = (row['指導老師'] || '').trim();
+          if (thesisTitle && thesisTitle !== '在學中' && thesisTitle !== '休學') {
+            // 依屆次分組
+            if (!completedByYear[year]) completedByYear[year] = [];
+            completedByYear[year].push(row);
+            
+            // 依指導老師分組
+            if (advisorField) {
+              const advisors = advisorField.split(/、|,|，/).map(name => name.trim()).filter(Boolean);
+              advisors.forEach(advisor => {
+                if (!completedByAdvisor[advisor]) completedByAdvisor[advisor] = [];
+                completedByAdvisor[advisor].push(row);
+              });
+            }
+          }
+        });
+
+        // 依屆次排序
+        const sortedCompletedYears = Object.keys(completedByYear).sort((a, b) => b - a);
+        // 依老師排序（專任在前，兼任在後）
+        const sortedAdvisors = [...fulltimeAdvisors, ...adjunctAdvisors].filter(advisor => completedByAdvisor[advisor]);
+
+        if (sortedCompletedYears.length > 0) {
+          const tableSection = document.createElement('div');
+          tableSection.className = 'advisor-section';
+          tableSection.style.marginTop = '24px';
+          
+          // 新增標題和分頁按鈕
+          const headerDiv = document.createElement('div');
+          headerDiv.className = 'flex flex-wrap items-center justify-between gap-3 mb-4';
+          
+          const tableTitle = document.createElement('h2');
+          tableTitle.textContent = '畢業論文簡表';
+          
+          const tabButtons = document.createElement('div');
+          tabButtons.className = 'flex flex-wrap items-center gap-2';
+          
+          const yearTab = document.createElement('button');
+          yearTab.textContent = '依屆次';
+          yearTab.className = 'tab-toggle';
+
+          const advisorTab = document.createElement('button');
+          advisorTab.textContent = '依指導老師';
+          advisorTab.className = 'tab-toggle';
+          
+          tabButtons.appendChild(yearTab);
+          tabButtons.appendChild(advisorTab);
+          
+          headerDiv.appendChild(tableTitle);
+          headerDiv.appendChild(tabButtons);
+          tableSection.appendChild(headerDiv);
+          
+          // 建立內容容器
+          const contentContainer = document.createElement('div');
+          
+          // 依屆次顯示的內容
+          const yearContent = document.createElement('div');
+          sortedCompletedYears.forEach(year => {
+            const yearTitle = document.createElement('div');
+            yearTitle.style.fontWeight = 'bold';
+            yearTitle.style.marginTop = '10px';
+            yearTitle.textContent = `${year}屆`;
+            yearContent.appendChild(yearTitle);
+            
+            const ul = document.createElement('ul');
+            ul.style.listStyle = 'none';
+            ul.style.padding = '0';
+            ul.style.margin = '0 0 10px 0';
+            
+            completedByYear[year].forEach(row => {
+              const li = document.createElement('li');
+              li.style.display = 'flex';
+              li.style.alignItems = 'flex-start';
+              li.style.marginBottom = '2px';
+              const badge = document.createElement('span');
+              if ((row['論文類型'] || '').trim() === '研究組') {
+                badge.className = 'student-badge research';
+              } else {
+                badge.className = 'student-badge';
+              }
+              badge.textContent = `${row['學生姓名']}(${row['屆次']})`;
+              badge.style.flexShrink = '0';
+              const textContainer = document.createElement('span');
+              textContainer.style.marginLeft = '8px';
+              textContainer.style.display = 'inline-block';
+              textContainer.style.lineHeight = '1.6';
+              textContainer.innerHTML = ` ${row['論文題目']}<span class="advisor-text">（${row['指導老師']}老師指導）</span>`;
+              li.appendChild(badge);
+              li.appendChild(textContainer);
+              ul.appendChild(li);
+            });
+            yearContent.appendChild(ul);
+          });
+          
+          // 依指導老師顯示的內容
+          const advisorContent = document.createElement('div');
+          advisorContent.style.display = 'none';
+          
+          sortedAdvisors.forEach(advisor => {
+            const advisorTitle = document.createElement('div');
+            advisorTitle.style.fontWeight = 'bold';
+            advisorTitle.style.marginTop = '10px';
+            advisorTitle.textContent = `${advisor}老師`;
+            advisorContent.appendChild(advisorTitle);
+            
+            const ul = document.createElement('ul');
+            ul.style.listStyle = 'none';
+            ul.style.padding = '0';
+            ul.style.margin = '0 0 10px 0';
+            
+            completedByAdvisor[advisor].forEach(row => {
+              const li = document.createElement('li');
+              li.style.display = 'flex';
+              li.style.alignItems = 'flex-start';
+              li.style.marginBottom = '2px';
+              const badge = document.createElement('span');
+              if ((row['論文類型'] || '').trim() === '研究組') {
+                badge.className = 'student-badge research';
+              } else {
+                badge.className = 'student-badge';
+              }
+              badge.textContent = `${row['學生姓名']}(${row['屆次']})`;
+              badge.style.flexShrink = '0';
+              const textContainer = document.createElement('span');
+              textContainer.style.marginLeft = '8px';
+              textContainer.style.display = 'inline-block';
+              textContainer.style.lineHeight = '1.6';
+              textContainer.innerHTML = ` ${row['論文題目']}<span class="advisor-text">（${row['指導老師']}老師指導）</span>`;
+              li.appendChild(badge);
+              li.appendChild(textContainer);
+              ul.appendChild(li);
+            });
+            advisorContent.appendChild(ul);
+          });
+          
+          contentContainer.appendChild(yearContent);
+          contentContainer.appendChild(advisorContent);
+          tableSection.appendChild(contentContainer);
+          container.appendChild(tableSection);
+          
+          // 分頁切換功能
+          yearTab.onclick = function() {
+            yearContent.style.display = 'block';
+            advisorContent.style.display = 'none';
+            yearTab.classList.add('active');
+            advisorTab.classList.remove('active');
+          };
+
+          advisorTab.onclick = function() {
+            yearContent.style.display = 'none';
+            advisorContent.style.display = 'block';
+            yearTab.classList.remove('active');
+            advisorTab.classList.add('active');
+          };
+
+          // 預設顯示依屆次
+          yearTab.classList.add('active');
+        }
+
+        // 浮動選單
+        let tooltip = document.getElementById('advisee-tooltip');
+        if (!tooltip) {
+          tooltip = document.createElement('div');
+          tooltip.id = 'advisee-tooltip';
+          tooltip.style.position = 'absolute';
+          tooltip.style.background = 'rgba(0,0,0,0.65)';
+          tooltip.style.color = 'white';
+          tooltip.style.padding = '4px 6px';
+          tooltip.style.borderRadius = '4px';
+          tooltip.style.fontSize = '12px';
+          tooltip.style.pointerEvents = 'none';
+          tooltip.style.display = 'none';
+          tooltip.style.zIndex = 1000;
+          document.body.appendChild(tooltip);
+        }
+
+        function showTooltip(e, row) {
+          tooltip.innerHTML = Object.entries(row)
+            .map(([k, v]) => `<b>${k}</b>：${v}`)
+            .join('<br>');
+          tooltip.style.display = 'block';
+          tooltip.style.left = (e.pageX + 10) + 'px';
+          tooltip.style.top = (e.pageY + 10) + 'px';
+        }
+        function hideTooltip() {
+          tooltip.style.display = 'none';
+        }
+      })
+      .catch(err => {
+        document.getElementById('sheet-table').innerText = '讀取失敗：' + err;
+      });
+  </script>
+</body>
+</html>

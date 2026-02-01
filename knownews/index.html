@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>媒聽說｜學生影像製播頻道</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uikit@3.19.4/dist/css/uikit.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/uikit@3.19.4/dist/js/uikit.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/uikit@3.19.4/dist/js/uikit-icons.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Sticky Navbar -->
+  <nav class="uk-navbar-container uk-navbar-transparent" uk-navbar uk-sticky>
+    <div class="uk-container">
+      <div class="uk-navbar-left">
+        <ul class="uk-navbar-nav">
+          <li><a href="#banner">頁首</a></li>
+          <li><a href="#about">簡介</a></li>
+          <li><a href="#members">成員</a></li>
+          <li><a href="#programs">節目</a></li>
+          <li><a href="#equipment">器材</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Banner with Blurred Parallax Background -->
+  <div id="banner" class="banner uk-background-cover uk-light" uk-parallax="bgy: -200">
+    <img src="figs/scene01.jpg" alt="Banner" class="banner-img-sharp">
+    <img src="figs/scene01.jpg" alt="Banner Blurred" class="banner-img-blur">
+    <div class="banner-text-overlay">
+      <div uk-parallax="y: 100,0">
+        <h1 class="uk-heading-large uk-text-bold">媒聽說</h1>
+        <p class="uk-text-lead">學生影像製播「媒聽說」頻道，致力於培養學生的媒體素養與影像製作能力，展現多元觀點與創意。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- About, Members, Programs, Equipment: unified container -->
+  <div class="main-content-rwd uk-margin-large-top">
+    <!-- About Section -->
+    <section id="about" class="uk-section">
+      <div style="text-align:center;">
+        <h2 class="uk-heading-bullet">關於我們</h2>
+        <div class="about-box">
+          「媒聽說 KnowNews」是由一群熱血的台大新聞所學生創立的頻道🔥 我們希望帶你了解真實的媒體世界！📰 在這裡，你將聽到教授們的真心話、學生們的創作，還有媒體與聽眾之間的真誠對話！💬 無論你是新聞學熱愛者，還是對媒體現象充滿好奇的觀眾，這裡都能給你全新的視角和啟發！
+        </div>
+        <div class="uk-margin-small-top">
+          <span class="uk-label uk-label-success">👉 追蹤我們的IG帳號：</span>
+          <span class="uk-text-bold">@knownews_ntujour</span>
+        </div>
+        <div class="uk-margin-small-top">
+          <span>別忘了點擊下方連結，Follow我們的最新動態！ 📲</span>
+        </div>
+        <div class="uk-margin-small-top">
+          <a class="uk-button uk-button-default uk-margin-small-right" href="https://instagram.com/knownews_ntujour/profilecard/?igsh=MWhxczQwaTllMDB4eQ==" target="_blank">INSTAGRAM</a>
+          <a class="uk-button uk-button-secondary" href="https://www.youtube.com/@KnowNewsNTUJournalism" target="_blank">更多資訊</a>
+        </div>
+      </div>
+    </section>
+    <!-- Members -->
+    <section id="members" class="uk-section">
+      <h2 class="uk-heading-bullet">成員介紹</h2>
+      <div class="members-flex uk-flex-center" id="student-members">
+        <!-- 學生成員卡片將由 JS 動態產生 -->
+      </div>
+      <div class="uk-margin-small-bottom uk-margin-top"><strong>監製</strong></div>
+      <div class="members-flex uk-flex-center" id="producers">
+        <!-- 監製群卡片將由 JS 動態產生 -->
+      </div>
+    </section>
+    <!-- Programs -->
+    <section id="programs" class="uk-section">
+      <h2 class="uk-heading-bullet">節目介紹</h2>
+      <div class="programs-box">
+        <ul>
+          <li>
+            <div class="uk-grid-small" uk-grid>
+              <div class="uk-width-expand">
+                <span class="program-title" style="font-size:1rem;font-weight:normal;cursor:pointer;">04/10 媒體素養專訪</span>
+                <span class="uk-text-meta" style="margin-left:8px;">主持人 許佑娟</span>
+              </div>
+            </div>
+            <div id="desc1" class="uk-margin-small-top program-desc" hidden>
+              本集邀請媒體專家，深入探討假新聞的辨識方法，並分享提升媒體素養的實用技巧，幫助學生在資訊爆炸時代中保持清晰判斷力。
+            </div>
+          </li>
+          <li>
+            <div class="uk-grid-small" uk-grid>
+              <div class="uk-width-expand">
+                <span class="program-title" style="font-size:1rem;font-weight:normal;cursor:pointer;">04/17 校園生活專訪</span>
+                <span class="uk-text-meta" style="margin-left:8px;">主持人 林小明</span>
+              </div>
+            </div>
+            <div id="desc2" class="uk-margin-small-top program-desc" hidden>
+              帶你走進大學生的日常，從課業、社團到人際關係，聽聽同學們如何面對挑戰、追尋夢想，展現青春活力的多元面貌。
+            </div>
+          </li>
+          <li>
+            <div class="uk-grid-small" uk-grid>
+              <div class="uk-width-expand">
+                <span class="program-title" style="font-size:1rem;font-weight:normal;cursor:pointer;">04/24 創意影像專訪</span>
+                <span class="uk-text-meta" style="margin-left:8px;">主持人 楊雅婷</span>
+              </div>
+            </div>
+            <div id="desc3" class="uk-margin-small-top program-desc" hidden>
+              聚焦學生自製短片與創意影像，邀請創作者分享靈感來源、拍攝過程與幕後趣事，啟發更多年輕人勇於表達自我。
+            </div>
+          </li>
+          <li>
+            <div class="uk-grid-small" uk-grid>
+              <div class="uk-width-expand">
+                <span class="program-title" style="font-size:1rem;font-weight:normal;cursor:pointer;">05/01 社會議題專訪</span>
+                <span class="uk-text-meta" style="margin-left:8px;">主持人 王大華</span>
+              </div>
+            </div>
+            <div id="desc4" class="uk-margin-small-top program-desc" hidden>
+              深入討論當前熱門社會議題，邀請不同領域的來賓交流觀點，激盪思辨，鼓勵學生關心社會、參與公共事務。
+            </div>
+          </li>
+        </ul>
+      </div>
+    </section>
+    <!-- Equipment Section -->
+    <section id="equipment" class="uk-section">
+      <h2 class="uk-heading-bullet">器材</h2>
+      <div class="programs-box">
+        <p>這裡可以介紹本頻道使用的攝影、錄音、燈光等器材。</p>
+      </div>
+    </section>
+  </div>
+
+  <!-- Environment Photos -->
+  <section id="environment" class="uk-section">
+    <div class="environment-gallery">
+      <img src="figs/scene01.jpg" alt="環境1">
+      <img src="figs/scene02.jpg" alt="環境2">
+      <img src="figs/scene03.jpg" alt="環境3">
+      <img src="figs/scene04.jpg" alt="環境4">
+      <img src="figs/scene05.jpg" alt="環境5">
+      <img src="figs/scene06.jpg" alt="環境6">
+    </div>
+  </section>
+
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // 環境圖片橫向卷軸自動置中
+    const gallery = document.querySelector('.environment-gallery');
+    if (gallery) {
+      gallery.scrollLeft = gallery.offsetWidth;
+    }
+
+    // 節目標題點擊展開/收合詳情
+    document.querySelectorAll('.program-title').forEach(function(title, idx) {
+      title.addEventListener('click', function() {
+        var desc = document.getElementById('desc' + (idx+1));
+        if (desc) desc.hidden = !desc.hidden;
+      });
+    });
+
+    // 成員自動化
+    fetch('staff.json')
+      .then(res => res.json())
+      .then(data => {
+        // 學生成員與監製群分類
+        const studentContainer = document.getElementById('student-members');
+        const producerContainer = document.getElementById('producers');
+        studentContainer.innerHTML = '';
+        producerContainer.innerHTML = '';
+        // 根據 role 判斷分類
+        Object.entries(data).forEach(([img, info]) => {
+          const card = document.createElement('div');
+          card.className = 'member-card uk-text-center';
+          card.innerHTML = `
+            <img src="figs/${img}" alt="${info.name}">
+            <h3 class="uk-card-title">${info.name}</h3>
+            <p class="uk-text-meta">${info.role}<br>${info.class || ''}</p>
+          `;
+          // 監製群關鍵字
+          if (info.role.includes('監製')) {
+            producerContainer.appendChild(card);
+          } else {
+            studentContainer.appendChild(card);
+          }
+        });
+      });
+  });
+  </script>
+</body>
+</html> 

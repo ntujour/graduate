@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>開課規劃 | Course Planning</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="min-h-screen bg-slate-100 text-slate-800 antialiased">
+  <header class="sticky top-0 border-b border-slate-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/70">
+    <div class="mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-4">
+      <a href="index.html" class="text-lg font-semibold tracking-wide text-sky-800 transition-colors hover:text-sky-600">NTU Journalism Services Portal</a>
+      <a href="index_old.html" class="text-sm font-medium text-slate-500 transition hover:text-sky-600">回到舊版</a>
+    </div>
+  </header>
+
+  <main class="mx-auto flex w-full max-w-5xl flex-col gap-10 px-4 py-12">
+    <section class="space-y-3">
+      <h1 class="text-3xl font-semibold tracking-tight text-sky-900">開課規劃</h1>
+      <p class="max-w-3xl text-sm leading-relaxed text-slate-600">提供未來兩年規劃開設的課程資訊，可點選課程以估算選修學分數，協助安排修課步調。</p>
+    </section>
+
+    <section class="rounded-2xl border border-slate-200 bg-white/95 p-6 shadow-sm shadow-slate-200/60">
+      <div class="space-y-6">
+        <div class="guidance-box" data-open="false">
+          <button type="button" class="guidance-toggle" aria-expanded="false">
+            <span class="guidance-title">修課指引</span>
+            <span class="guidance-hint">點此展開內容</span>
+            <span class="guidance-arrow">▾</span>
+          </button>
+          <div class="guidance-content-wrapper">
+            <div class="guidance-content">
+              <ul>
+                <li>「大眾傳播理論」原則上為碩一必修、「新聞法律與倫理」為碩二必修。</li>
+                <li>論文進程各階段須間隔至少三個月：確認指導教授三個月後方可進行計劃書口試；計劃書口試通過三個月後方可辦理論文口試。辦理計劃書口試前須完成所有必修與必選修課程（詳見<a href="http://www.journalism.ntu.edu.tw/course-regulation.html" target="_blank" rel="noopener noreferrer">臺大新聞所入學學生修業規定</a>）。</li>
+                <li><b>專業組</b>：除必修必選課程外，需再選修本所課程至少兩門；撰寫文字或多媒體採訪報導論文者必選「採訪寫作一、二」，撰寫影像採訪論文者必選「影像報導一、二」。</li>
+                <li><b>研究組</b>：除必修理論課程外，須再選修三門所內理論課程（課程地圖延伸選修中的「理論／方法」、「媒體公民意識」、「國際視野」三類）。選修「影像報導二」須先修「影像報導一」，選修「採訪寫作二」須先修「採訪寫作一」。</li>
+                <li>未來兩年將因新聘與業界師資新增課程，預計114-2增開三至四門、115-1增開二至三門，敬請留意公告與調整。</li>
+                <li>在學期間建議建立個人專業技能，無論文字、影像、音訊、數位媒體或資料新聞，本所均有對應課程可供選修，鼓勵依興趣與職涯提早規劃。</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div id="courseplan-table" class="courseplan-table"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-slate-200 bg-white/90">
+    <div class="mx-auto flex w-full max-w-5xl flex-col gap-1 px-4 py-6 text-xs text-slate-400">
+      <span>國立臺灣大學 新聞研究所 | NTU Graduate Institute of Journalism</span>
+      <span>如有建議或需求，請聯繫系辦。</span>
+    </div>
+  </footer>
+  <script>
+    // 切換修課指引顯示
+    const guidanceBox = document.querySelector('.guidance-box');
+    if (guidanceBox) {
+      const toggleButton = guidanceBox.querySelector('.guidance-toggle');
+      const hint = guidanceBox.querySelector('.guidance-hint');
+      const contentWrapper = guidanceBox.querySelector('.guidance-content-wrapper');
+      toggleButton?.addEventListener('click', () => {
+        const open = guidanceBox.getAttribute('data-open') === 'true';
+        const nextState = !open;
+        guidanceBox.setAttribute('data-open', nextState.toString());
+        toggleButton.setAttribute('aria-expanded', nextState.toString());
+        if (hint) {
+          hint.textContent = nextState ? '點此收合內容' : '點此展開內容';
+        }
+        if (contentWrapper) {
+          contentWrapper.style.maxHeight = nextState ? `${contentWrapper.scrollHeight}px` : '0px';
+        }
+      });
+      if (contentWrapper) {
+        contentWrapper.style.maxHeight = '0px';
+      }
+    }
+
+    // 課程類別定義
+    const categories = [
+      { key: 'required', name: '必修', class: 'required' },
+      { key: 'method', name: '必選修-方法', class: 'method' },
+      { key: 'practice', name: '必選修-實務', class: 'practice' },
+      { key: 'other', name: '選修', class: 'other' }
+    ];
+    
+    // 學期順序
+    const semesters = ['114-1', '114-2', '115-1', '115-2'];
+    
+    // 選中的課程記錄
+    const selectedCourses = new Set();
+    
+    // 更新學期課程計數
+    function updateSemesterCount() {
+      semesters.forEach(semester => {
+        const count = Array.from(selectedCourses).filter(courseId => {
+          const [courseSemester] = courseId.split('|');
+          return courseSemester === semester;
+        }).length;
+        
+        const headerCell = document.querySelector(`th[data-semester="${semester}"]`);
+        if (headerCell) {
+          if (count > 0) {
+            headerCell.textContent = `${semester}（共選了${count}門課）`;
+          } else {
+            headerCell.textContent = semester;
+          }
+        }
+      });
+    }
+    
+    // 下載資料
+    fetch('data/courses.csv')
+      .then(r => r.text())
+      .then(csv => {
+        // 解析CSV
+        const rows = csv.split('\n').map(row => row.split(','));
+        const header = rows[0];
+        const data = rows.slice(1).map(row => {
+          const obj = {};
+          header.forEach((h, i) => obj[h.trim()] = (row[i]||'').trim());
+          return obj;
+        });
+        
+        // 建立表格
+        const container = document.getElementById('courseplan-table');
+        const table = document.createElement('table');
+        table.className = 'course-table';
+        
+        // 建立表頭
+        const thead = document.createElement('thead');
+        const headerRow = document.createElement('tr');
+        
+        // 第一欄是類別標題
+        const categoryHeader = document.createElement('th');
+        categoryHeader.textContent = '課程類別';
+        categoryHeader.className = 'category-header';
+        headerRow.appendChild(categoryHeader);
+        
+        // 其他欄是學期
+        semesters.forEach(semester => {
+          const th = document.createElement('th');
+          th.textContent = semester;
+          th.setAttribute('data-semester', semester);
+          headerRow.appendChild(th);
+        });
+        
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+        
+        // 建立表格內容
+        const tbody = document.createElement('tbody');
+        
+        categories.forEach(category => {
+          const row = document.createElement('tr');
+          
+          // 類別標題欄
+          const categoryCell = document.createElement('td');
+          categoryCell.textContent = category.name;
+          categoryCell.className = 'category-header';
+          row.appendChild(categoryCell);
+          
+          // 各學期欄位
+          semesters.forEach(semester => {
+            const cell = document.createElement('td');
+            
+            // 篩選該類別和學期的課程
+            const semesterCourses = data.filter(course => {
+              // 檢查是否在該學期開課
+              if (course[semester] !== '1') return false;
+              
+              // 檢查類別
+              const courseCategory = (course.category || '').trim();
+              
+              switch (category.key) {
+                case 'required':
+                  return courseCategory.startsWith('必修');
+                case 'method':
+                  return courseCategory.startsWith('必選修-方法');
+                case 'practice':
+                  return courseCategory.startsWith('必選修-實務');
+                case 'other':
+                  return !courseCategory.startsWith('必修') && 
+                         !courseCategory.startsWith('必選修-方法') && 
+                         !courseCategory.startsWith('必選修-實務');
+                default:
+                  return false;
+              }
+            });
+            
+            // 分組：有info的課程和無info的課程
+            const coursesWithInfo = semesterCourses.filter(course => course.info);
+            const coursesWithoutInfo = semesterCourses.filter(course => !course.info);
+            
+            // 先顯示無info的課程
+            coursesWithoutInfo.forEach(course => {
+              const courseDiv = document.createElement('div');
+              courseDiv.className = `course-item ${category.class}`;
+              courseDiv.style.cursor = 'pointer';
+              
+              // 課程名稱
+              const nameSpan = document.createElement('div');
+              nameSpan.className = 'course-name';
+              nameSpan.textContent = course.cname;
+              courseDiv.appendChild(nameSpan);
+              
+              // 教師資訊
+              if (course.offer_by) {
+                const teacherSpan = document.createElement('div');
+                teacherSpan.className = 'course-teacher';
+                teacherSpan.textContent = course.offer_by;
+                courseDiv.appendChild(teacherSpan);
+              }
+              
+              // 添加點擊事件
+              const courseId = `${semester}|${course.cname}`;
+              courseDiv.onclick = function() {
+                if (selectedCourses.has(courseId)) {
+                  selectedCourses.delete(courseId);
+                  courseDiv.classList.remove('selected');
+                } else {
+                  selectedCourses.add(courseId);
+                  courseDiv.classList.add('selected');
+                }
+                updateSemesterCount();
+              };
+              
+              cell.appendChild(courseDiv);
+            });
+            
+            // 再顯示有info的課程
+            coursesWithInfo.forEach(course => {
+              const courseDiv = document.createElement('div');
+              courseDiv.className = `course-item ${category.class}`;
+              courseDiv.style.cursor = 'pointer';
+              
+              // 課程名稱
+              const nameSpan = document.createElement('div');
+              nameSpan.className = 'course-name';
+              nameSpan.textContent = course.cname;
+              nameSpan.classList.add('course-info');
+              nameSpan.title = course.info;
+              
+              // 工具提示功能
+              nameSpan.onmouseenter = function(e) {
+                let tip = document.createElement('div');
+                tip.textContent = course.info;
+                tip.className = 'course-tooltip';
+                tip.style.left = (e.clientX + 10) + 'px';
+                tip.style.top = (e.clientY + 10) + 'px';
+                document.body.appendChild(tip);
+                nameSpan._tip = tip;
+              };
+              
+              nameSpan.onmousemove = function(e) {
+                if (nameSpan._tip) {
+                  nameSpan._tip.style.left = (e.clientX + 10) + 'px';
+                  nameSpan._tip.style.top = (e.clientY + 10) + 'px';
+                }
+              };
+              
+              nameSpan.onmouseleave = function() {
+                if (nameSpan._tip) {
+                  document.body.removeChild(nameSpan._tip);
+                  nameSpan._tip = null;
+                }
+              };
+              
+              courseDiv.appendChild(nameSpan);
+              
+              // 教師資訊
+              if (course.offer_by) {
+                const teacherSpan = document.createElement('div');
+                teacherSpan.className = 'course-teacher';
+                teacherSpan.textContent = course.offer_by;
+                courseDiv.appendChild(teacherSpan);
+              }
+              
+              // 添加點擊事件
+              const courseId = `${semester}|${course.cname}`;
+              courseDiv.onclick = function() {
+                if (selectedCourses.has(courseId)) {
+                  selectedCourses.delete(courseId);
+                  courseDiv.classList.remove('selected');
+                } else {
+                  selectedCourses.add(courseId);
+                  courseDiv.classList.add('selected');
+                }
+                updateSemesterCount();
+              };
+              
+              cell.appendChild(courseDiv);
+            });
+            
+            row.appendChild(cell);
+          });
+          
+          tbody.appendChild(row);
+        });
+        
+        table.appendChild(tbody);
+        container.appendChild(table);
+      });
+  </script>
+</body>
+</html> 

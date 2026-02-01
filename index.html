@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>NTU Journalism Services Portal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root { color-scheme: light; }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-100 text-slate-800">
+  <header class="sticky top-0 border-b border-slate-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/70">
+    <div class="mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-4">
+      <a href="index_new.html" class="text-lg font-semibold tracking-wide text-sky-800 transition-colors hover:text-sky-600">NTU Journalism Services Portal</a>
+      <a href="index_old.html" class="text-sm font-medium text-slate-500 transition hover:text-sky-600">回到舊版</a>
+    </div>
+  </header>
+
+  <main class="mx-auto flex w-full max-w-5xl flex-col gap-12 px-4 py-12">
+    <section class="flex flex-col gap-4">
+      <h1 class="text-2xl font-semibold tracking-tight text-sky-900">歡迎使用本服務平台</h1>
+      <p class="max-w-3xl text-sm leading-relaxed text-slate-600">本平台整合台大新聞所學生常用的課程與活動資訊，協助您快速掌握修課規劃、論文準備與學習資源。</p>
+      <div class="grid gap-4 sm:grid-cols-2">
+        <a href="advisee.html" class="group relative flex h-full flex-col gap-4 border border-slate-200 bg-white px-6 py-5 text-slate-700 shadow-sm transition duration-200 hover:-translate-y-1 hover:border-sky-200 hover:shadow-lg">
+          <div class="space-y-1">
+            <span class="text-base font-semibold text-sky-800 transition-colors group-hover:text-sky-600">指導學生狀態</span>
+            <span class="text-xs uppercase tracking-wider text-slate-400">Supervising Status</span>
+          </div>
+          <p class="text-sm leading-relaxed text-slate-500">了解每位老師現在的指導學生數以及畢業生的論文題目。</p>
+        </a>
+        <a href="courses.html" class="group relative flex h-full flex-col gap-4 border border-slate-200 bg-white px-6 py-5 text-slate-700 shadow-sm transition duration-200 hover:-translate-y-1 hover:border-sky-200 hover:shadow-lg">
+          <div class="space-y-1">
+            <span class="text-base font-semibold text-sky-800 transition-colors group-hover:text-sky-600">課程地圖</span>
+            <span class="text-xs uppercase tracking-wider text-slate-400">Course Map</span>
+          </div>
+          <p class="text-sm leading-relaxed text-slate-500">新聞所標準課程地圖，可透過拖拉規劃各學期要上的課程，也適合尚未入學、對本所感興趣的同學。</p>
+        </a>
+        <a href="courseplan.html" class="group relative flex h-full flex-col gap-4 border border-slate-200 bg-white px-6 py-5 text-slate-700 shadow-sm transition duration-200 hover:-translate-y-1 hover:border-sky-200 hover:shadow-lg">
+          <div class="space-y-1">
+            <span class="text-base font-semibold text-sky-800 transition-colors group-hover:text-sky-600">開課規劃</span>
+            <span class="text-xs uppercase tracking-wider text-slate-400">Course Planning</span>
+          </div>
+          <p class="text-sm leading-relaxed text-slate-500">提供未來兩年規劃開設的課程資訊，可點選課程以估算選修學分數，協助安排修課步調。</p>
+        </a>
+        <a href="regular_event.html" class="group relative flex h-full flex-col gap-4 border border-slate-200 bg-white px-6 py-5 text-slate-700 shadow-sm transition duration-200 hover:-translate-y-1 hover:border-sky-200 hover:shadow-lg">
+          <div class="space-y-1">
+            <span class="text-base font-semibold text-sky-800 transition-colors group-hover:text-sky-600">常態活動</span>
+            <span class="text-xs uppercase tracking-wider text-slate-400">Regular Events</span>
+          </div>
+          <p class="text-sm leading-relaxed text-slate-500">匯整每年的常態活動，包含口試申請期限、論文報獎、學術研討會與國際交換申請等重要時間。</p>
+        </a>
+      </div>
+    </section>
+
+    <section class="flex flex-col gap-4">
+      <div class="flex flex-col gap-2">
+        <h2 class="text-xl font-semibold tracking-tight text-sky-900">相關鏈結</h2>
+        <p class="max-w-3xl text-sm leading-relaxed text-slate-600">掌握系上影音與媒體資源，了解即時資訊與精選作品。</p>
+      </div>
+      <div class="grid gap-4 sm:grid-cols-2">
+        <a href="knownews/index.html" class="group flex h-full flex-col gap-4 border border-slate-200 bg-white px-6 py-5 text-slate-700 shadow-sm transition duration-200 hover:-translate-y-1 hover:border-sky-200 hover:shadow-lg">
+          <div class="space-y-1">
+            <span class="text-base font-semibold text-sky-800 transition-colors group-hover:text-sky-600">「媒聽說」影像頻道</span>
+            <span class="text-xs uppercase tracking-wider text-slate-400">Video Channel</span>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <section class="flex flex-col gap-4">
+      <div class="flex flex-col gap-2">
+        <h2 class="text-xl font-semibold tracking-tight text-sky-900">相關表單</h2>
+        <p class="max-w-3xl text-sm leading-relaxed text-slate-600">表單資料會即時更新，敬請留意截止日期並完成所需申請。</p>
+      </div>
+      <div id="formList" class="grid gap-4 sm:grid-cols-2">
+        <div class="flex items-center justify-center border border-dashed border-slate-200 bg-white px-6 py-12 text-sm text-slate-400">載入中...</div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-slate-200 bg-white/90">
+    <div class="mx-auto flex w-full max-w-5xl flex-col gap-1 px-4 py-6 text-xs text-slate-400">
+      <span>國立臺灣大學 新聞研究所 | NTU Graduate Institute of Journalism</span>
+      <span>如有建議或需求，請聯繫系辦。</span>
+    </div>
+  </footer>
+
+  <script>
+    let formsLoaded = false;
+    let formsData = null;
+
+    async function loadForms() {
+      try {
+        const response = await fetch('data/office.csv');
+        const csvText = await response.text();
+        formsData = parseCSV(csvText);
+        formsLoaded = true;
+        displayForms(formsData);
+      } catch (error) {
+        console.error('Error loading forms:', error);
+        document.getElementById('formList').innerHTML = '<div class="flex items-center justify-center border border-dashed border-rose-200 bg-white px-6 py-12 text-sm text-rose-400">無法載入表單資料</div>';
+      }
+    }
+
+    function parseCSV(csvText) {
+      const lines = csvText.split('\n');
+      const headers = lines[0].split(',');
+      return lines.slice(1).filter(line => line.trim()).map(line => {
+        const values = line.split(',');
+        return {
+          formName: values[0],
+          endDate: values[1],
+          formLink: values[2]
+        };
+      });
+    }
+
+    function displayForms(forms) {
+      const formList = document.getElementById('formList');
+      formList.innerHTML = forms.map(form => `
+        <a href="${form.formLink}" target="_blank" class="group flex h-full flex-col gap-4 border border-slate-200 bg-white px-6 py-5 text-slate-700 shadow-sm transition duration-200 hover:-translate-y-1 hover:border-sky-200 hover:shadow-lg">
+          <div class="space-y-1">
+            <span class="text-base font-semibold text-sky-800 transition-colors group-hover:text-sky-600">${form.formName}</span>
+            <span class="text-xs text-slate-400">截止日期: ${form.endDate}</span>
+          </div>
+        </a>
+      `).join('');
+    }
+
+    window.addEventListener('load', loadForms);
+  </script>
+</body>
+</html>

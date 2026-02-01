@@ -1,0 +1,32 @@
+{
+  "staff-hsu01.png": {
+    "name": "許佑娟",
+    "role": "主持、製作人",
+    "class": "J32"
+  },
+  "staff-yang01.jpg": {
+    "name": "楊仁",
+    "role": "主攝",
+    "class": "J32"
+  },
+  "staff-lin01.jpg": {
+    "name": "林佳玟",
+    "role": "剪輯、攝助",
+    "class": "J32"
+  },
+  "staff-si01.png": {
+    "name": "奚子翔",
+    "role": "剪輯、攝助",
+    "class": "J33"
+  },
+  "staff-ke01.png": {
+    "name": "柯采瑜",
+    "role": "場佈、攝助",
+    "class": "J33"
+  },
+  "staff-kao01.png": {
+    "name": "高于棋",
+    "role": "廣宣",
+    "class": "J33"
+  }
+}
