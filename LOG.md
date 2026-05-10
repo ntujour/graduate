@@ -14,3 +14,9 @@
   - 改用更穩健的 CSV parser，正確處理引號內逗號
   - 原檔案備份至 `backup/regular_event.pre-live.html`
 - [備註] 此為自動化試行第一頁。如成功運作，下一階段會將 `index.html`（office.csv）、`courses.html`、`courseplan.html`、`advisee.html` 都改為 live，最終即可退役 `update_forms.py` 與 `data/` 目錄。
+- [01:30] `courseplan.html` 改為 live 模式並更新學期規劃：
+  - 學期欄位由 `114-1/114-2/115-1/115-2` 改為 `115-1/115-2/116-1/116-2`（116 學年度欄位由系辦於 Google Sheet 補上）
+  - 改為直接從 Google Sheets 讀取 courses.csv，加入 localStorage 快取（SWR）
+  - 升級 CSV parser 處理引號內逗號
+  - 修課指引第 5 點文案更新為「115-1 增開三門、改一門課名；115-2 增開一門、改一門課名」
+  - 原檔備份至 `backup/courseplan.pre-live.html`

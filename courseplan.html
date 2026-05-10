@@ -36,7 +36,7 @@
                 <li>論文進程各階段須間隔至少三個月：確認指導教授三個月後方可進行計劃書口試；計劃書口試通過三個月後方可辦理論文口試。辦理計劃書口試前須完成所有必修與必選修課程（詳見<a href="http://www.journalism.ntu.edu.tw/course-regulation.html" target="_blank" rel="noopener noreferrer">臺大新聞所入學學生修業規定</a>）。</li>
                 <li><b>專業組</b>：除必修必選課程外，需再選修本所課程至少兩門；撰寫文字或多媒體採訪報導論文者必選「採訪寫作一、二」，撰寫影像採訪論文者必選「影像報導一、二」。</li>
                 <li><b>研究組</b>：除必修理論課程外，須再選修三門所內理論課程（課程地圖延伸選修中的「理論／方法」、「媒體公民意識」、「國際視野」三類）。選修「影像報導二」須先修「影像報導一」，選修「採訪寫作二」須先修「採訪寫作一」。</li>
-                <li>未來兩年將因新聘與業界師資新增課程，預計114-2增開三至四門、115-1增開二至三門，敬請留意公告與調整。</li>
+                <li>未來兩年將因新聘與業界師資新增課程，115-1 增開三門、改一門課名；115-2 增開一門、改一門課名，敬請留意公告與調整。</li>
                 <li>在學期間建議建立個人專業技能，無論文字、影像、音訊、數位媒體或資料新聞，本所均有對應課程可供選修，鼓勵依興趣與職涯提早規劃。</li>
               </ul>
             </div>
@@ -87,7 +87,7 @@
     ];
     
     // 學期順序
-    const semesters = ['114-1', '114-2', '115-1', '115-2'];
+    const semesters = ['115-1', '115-2', '116-1', '116-2'];
     
     // 選中的課程記錄
     const selectedCourses = new Set();
@@ -111,18 +111,43 @@
       });
     }
     
-    // 下載資料
-    fetch('data/courses.csv')
-      .then(r => r.text())
-      .then(csv => {
-        // 解析CSV
-        const rows = csv.split('\n').map(row => row.split(','));
-        const header = rows[0];
-        const data = rows.slice(1).map(row => {
-          const obj = {};
-          header.forEach((h, i) => obj[h.trim()] = (row[i]||'').trim());
-          return obj;
-        });
+    // 資料來源（直接從 Google Sheets 抓最新資料）
+    const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQHsu0mwJHBxfuSwglE4PsC2G_F8atdcFZ_j1SSvaNA1QuLlBfVnFXQmYX5Hb5Qp3f1PdtTjQ_4ngi9/pub?gid=504100079&single=true&output=csv";
+    const CACHE_KEY = "courses_csv_v1";
+    const CACHE_TIME_KEY = "courses_csv_time_v1";
+
+    // 處理 CSV 中引號包裹的逗號
+    function parseCSV(text) {
+      const rows = [];
+      let row = [];
+      let field = '';
+      let inQuotes = false;
+      for (let i = 0; i < text.length; i++) {
+        const c = text[i];
+        if (inQuotes) {
+          if (c === '"' && text[i + 1] === '"') { field += '"'; i++; }
+          else if (c === '"') { inQuotes = false; }
+          else { field += c; }
+        } else {
+          if (c === '"') { inQuotes = true; }
+          else if (c === ',') { row.push(field); field = ''; }
+          else if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; }
+          else if (c === '\r') { /* skip */ }
+          else { field += c; }
+        }
+      }
+      if (field.length > 0 || row.length > 0) { row.push(field); rows.push(row); }
+      return rows;
+    }
+
+    function buildTable(csv) {
+      const rows = parseCSV(csv);
+      const header = rows[0];
+      const data = rows.slice(1).filter(r => r.length > 1 && r[0]).map(row => {
+        const obj = {};
+        header.forEach((h, i) => obj[h.trim()] = (row[i] || '').trim());
+        return obj;
+      });
         
         // 建立表格
         const container = document.getElementById('courseplan-table');
@@ -301,8 +326,37 @@
         });
         
         table.appendChild(tbody);
+        container.innerHTML = '';
         container.appendChild(table);
-      });
+        updateSemesterCount();
+    }
+
+    // Stale-while-revalidate：先用快取立刻顯示，背景更新最新版
+    (async function () {
+      const cached = localStorage.getItem(CACHE_KEY);
+      if (cached) {
+        try { buildTable(cached); } catch (e) { console.warn('cached render failed', e); }
+      }
+      try {
+        const res = await fetch(SHEET_URL, { cache: 'no-store' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const csv = await res.text();
+        if (csv !== cached) {
+          // 清空已選課程（資料更新可能造成課程名變化）
+          selectedCourses.clear();
+          buildTable(csv);
+          localStorage.setItem(CACHE_KEY, csv);
+          localStorage.setItem(CACHE_TIME_KEY, Date.now().toString());
+        } else {
+          localStorage.setItem(CACHE_TIME_KEY, Date.now().toString());
+        }
+      } catch (err) {
+        if (!cached) {
+          const container = document.getElementById('courseplan-table');
+          container.innerHTML = `<div style="color:#dc2626;padding:20px;text-align:center;">無法讀取課程資料：${err.message}</div>`;
+        }
+      }
+    })();
   </script>
 </body>
 </html> 
