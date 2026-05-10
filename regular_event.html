@@ -133,6 +133,36 @@
       margin-right: 6px;
     }
 
+    .data-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      color: var(--portal-muted);
+      padding: 4px 10px;
+      background: rgba(148, 163, 184, 0.12);
+      border-radius: var(--portal-radius);
+    }
+
+    .data-status .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #94a3b8;
+    }
+
+    .data-status.live .dot { background: #22c55e; }
+    .data-status.cached .dot { background: #f59e0b; }
+    .data-status.refreshing .dot {
+      background: #0ea5e9;
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
     @media (max-width: 720px) {
       .events-card {
         padding: 24px 20px;
@@ -153,14 +183,20 @@
   <header class="sticky top-0 border-b border-slate-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/70">
     <div class="mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-4">
       <a href="index.html" class="text-lg font-semibold tracking-wide text-sky-800 transition-colors hover:text-sky-600">NTU Journalism Services Portal</a>
-      <a href="index_old.html" class="text-sm font-medium text-slate-500 transition hover:text-sky-600">回到舊版</a>
+      <a href="index.html" class="text-sm font-medium text-slate-500 transition hover:text-sky-600">返回首頁</a>
     </div>
   </header>
 
   <main class="mx-auto flex w-full max-w-5xl flex-col gap-10 px-4 py-12">
     <section class="space-y-3">
-      <h1 class="text-3xl font-semibold tracking-tight text-sky-900">常態活動</h1>
-      <p class="max-w-3xl text-sm leading-relaxed text-slate-600">匯整每年的常態活動，包含口試申請期限、論文報獎、學術研討會與國際交換申請等重要時間，協助你掌握系上節奏與申請時程。</p>
+      <div class="flex flex-wrap items-center gap-3">
+        <h1 class="text-3xl font-semibold tracking-tight text-sky-900">常態活動</h1>
+        <span id="data-status" class="data-status">
+          <span class="dot"></span>
+          <span class="label">載入中…</span>
+        </span>
+      </div>
+      <p class="max-w-3xl text-sm leading-relaxed text-slate-600">匯整每年的常態活動，包含口試申請期限、論文報獎、學術研討會與國際交換申請等重要時間，協助你掌握系上節奏與申請時程。資料直接讀取自 Google Sheet，更新後重新整理頁面即可看到最新內容。</p>
     </section>
 
     <section class="events-card">
@@ -174,112 +210,177 @@
       <span>如有建議或需求，請聯繫系辦。</span>
     </div>
   </footer>
+
   <script>
-    // 下載資料
-    fetch('data/regular_event.csv')
-      .then(r => r.text())
-      .then(csv => {
-        // 解析CSV
-        const rows = csv.split('\n').map(row => row.split(','));
-        const header = rows[0];
-        const data = rows.slice(1).filter(row => row.length > 1); // 忽略空行
-        
-        // 建立月份列表
-        const months = ['一月', '二月', '三月', '四月', '五月', '六月', 
-                       '七月', '八月', '九月', '十月', '十一月', '十二月'];
-        
-        // 建立列表容器
-        const listContainer = document.getElementById('regular-event-list');
-        listContainer.innerHTML = '';
-        
-        // 按月份排序並建立表格式列表
-        let isFirstMonth = true;
-        months.forEach((month, index) => {
-          const monthNumber = index + 1;
-          const monthEvents = data.filter(row => parseInt(row[2]) === monthNumber);
-          if (monthEvents.length > 0) {
-            if (!isFirstMonth) {
-              const hr = document.createElement('hr');
-              hr.style.border = 'none';
-              hr.style.borderTop = '1px solid rgba(148, 163, 184, 0.28)';
-              hr.style.margin = '18px 0 12px 0';
-              listContainer.appendChild(hr);
-            }
-            isFirstMonth = false;
-            monthEvents.forEach((event, i) => {
-              const rowDiv = document.createElement('div');
-              rowDiv.className = 'event-row';
-              
-              const monthCell = document.createElement('div');
-              monthCell.className = 'event-month-cell';
-              monthCell.textContent = i === 0 ? month : '';
-              
-              const contentCell = document.createElement('div');
-              contentCell.className = 'event-content-cell';
-              const hashtagCell = document.createElement('div');
-              hashtagCell.className = 'event-hashtag-cell';
-              
-              // Event title and description
-              const titleRow = document.createElement('div');
-              titleRow.className = 'event-title-row';
-              const link = event[5]?.trim();
-              let titleDiv;
-              if (link) {
-                titleDiv = document.createElement('a');
-                titleDiv.className = 'event-title-link';
-                titleDiv.href = link;
-                titleDiv.target = '_blank';
-                titleDiv.rel = 'noopener noreferrer';
-                titleDiv.textContent = event[0].trim();
-              } else {
-                titleDiv = document.createElement('span');
-                titleDiv.className = 'event-title';
-                titleDiv.textContent = event[0].trim();
-              }
-              titleRow.appendChild(titleDiv);
+    const SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQHsu0mwJHBxfuSwglE4PsC2G_F8atdcFZ_j1SSvaNA1QuLlBfVnFXQmYX5Hb5Qp3f1PdtTjQ_4ngi9/pub?gid=2031884623&single=true&output=csv";
+    const CACHE_KEY = "regular_event_csv_v1";
+    const CACHE_TIME_KEY = "regular_event_csv_time_v1";
 
-              // Add category (hashtag) right after the title
-              const category = event[1]?.trim() || '其他';
-              const categorySpan = document.createElement('span');
-              categorySpan.className = 'event-category category-' + category;
-              categorySpan.textContent = `${category}`;
-              titleRow.appendChild(categorySpan);
+    const months = ['一月', '二月', '三月', '四月', '五月', '六月',
+                    '七月', '八月', '九月', '十月', '十一月', '十二月'];
 
-              contentCell.appendChild(titleRow);
+    // 處理 CSV 中引號包裹的逗號
+    function parseCSV(text) {
+      const rows = [];
+      let row = [];
+      let field = '';
+      let inQuotes = false;
+      for (let i = 0; i < text.length; i++) {
+        const c = text[i];
+        if (inQuotes) {
+          if (c === '"' && text[i + 1] === '"') { field += '"'; i++; }
+          else if (c === '"') { inQuotes = false; }
+          else { field += c; }
+        } else {
+          if (c === '"') { inQuotes = true; }
+          else if (c === ',') { row.push(field); field = ''; }
+          else if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; }
+          else if (c === '\r') { /* skip */ }
+          else { field += c; }
+        }
+      }
+      if (field.length > 0 || row.length > 0) { row.push(field); rows.push(row); }
+      return rows;
+    }
 
-              // Inline description with due (if any) at the start, all in one line
-              const due = event[3]?.trim();
-              const descText = event[4]?.trim() || '';
-              if (due || descText) {
-                const descParagraph = document.createElement('p');
-                descParagraph.className = 'event-description';
-                if (due) {
-                  const dueSpan = document.createElement('span');
-                  dueSpan.className = 'event-due-inline';
-                  dueSpan.textContent = `截止日期：${due} `;
-                  descParagraph.appendChild(dueSpan);
-                }
-                descParagraph.appendChild(document.createTextNode(descText));
-                contentCell.appendChild(descParagraph);
-              }
+    function setStatus(state, label) {
+      const el = document.getElementById('data-status');
+      el.className = `data-status ${state}`;
+      el.querySelector('.label').textContent = label;
+    }
 
-              rowDiv.appendChild(monthCell);
-              rowDiv.appendChild(contentCell);
-              
-              listContainer.appendChild(rowDiv);
-            });
+    function formatTime(ts) {
+      const d = new Date(ts);
+      const pad = n => String(n).padStart(2, '0');
+      return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+
+    function render(csv) {
+      const rows = parseCSV(csv);
+      const data = rows.slice(1).filter(row => row.length > 1 && row[0]);
+
+      const listContainer = document.getElementById('regular-event-list');
+      listContainer.innerHTML = '';
+
+      let isFirstMonth = true;
+      months.forEach((month, index) => {
+        const monthNumber = index + 1;
+        const monthEvents = data.filter(row => parseInt(row[2]) === monthNumber);
+        if (monthEvents.length === 0) return;
+
+        if (!isFirstMonth) {
+          const hr = document.createElement('hr');
+          hr.style.border = 'none';
+          hr.style.borderTop = '1px solid rgba(148, 163, 184, 0.28)';
+          hr.style.margin = '18px 0 12px 0';
+          listContainer.appendChild(hr);
+        }
+        isFirstMonth = false;
+
+        monthEvents.forEach((event, i) => {
+          const rowDiv = document.createElement('div');
+          rowDiv.className = 'event-row';
+
+          const monthCell = document.createElement('div');
+          monthCell.className = 'event-month-cell';
+          monthCell.textContent = i === 0 ? month : '';
+
+          const contentCell = document.createElement('div');
+          contentCell.className = 'event-content-cell';
+
+          const titleRow = document.createElement('div');
+          titleRow.className = 'event-title-row';
+          const link = event[5]?.trim();
+          let titleDiv;
+          if (link) {
+            titleDiv = document.createElement('a');
+            titleDiv.className = 'event-title-link';
+            titleDiv.href = link;
+            titleDiv.target = '_blank';
+            titleDiv.rel = 'noopener noreferrer';
+            titleDiv.textContent = event[0].trim();
+          } else {
+            titleDiv = document.createElement('span');
+            titleDiv.className = 'event-title';
+            titleDiv.textContent = event[0].trim();
           }
+          titleRow.appendChild(titleDiv);
+
+          const category = event[1]?.trim() || '其他';
+          const categorySpan = document.createElement('span');
+          categorySpan.className = 'event-category category-' + category;
+          categorySpan.textContent = category;
+          titleRow.appendChild(categorySpan);
+
+          contentCell.appendChild(titleRow);
+
+          const due = event[3]?.trim();
+          const descText = event[4]?.trim() || '';
+          if (due || descText) {
+            const descParagraph = document.createElement('p');
+            descParagraph.className = 'event-description';
+            if (due) {
+              const dueSpan = document.createElement('span');
+              dueSpan.className = 'event-due-inline';
+              dueSpan.textContent = `截止日期：${due} `;
+              descParagraph.appendChild(dueSpan);
+            }
+            descParagraph.appendChild(document.createTextNode(descText));
+            contentCell.appendChild(descParagraph);
+          }
+
+          rowDiv.appendChild(monthCell);
+          rowDiv.appendChild(contentCell);
+          listContainer.appendChild(rowDiv);
         });
-      })
-      .catch(error => {
-        const listContainer = document.getElementById('regular-event-list');
-        listContainer.innerHTML = `
-          <div style="color: #dc2626; padding: 20px; text-align: center;">
-            <p>無法讀取資料，請確認 data/regular_event.csv 檔案是否存在。</p>
-            <p>錯誤訊息: ${error.message}</p>
-          </div>
-        `;
       });
+    }
+
+    function showError(message) {
+      const listContainer = document.getElementById('regular-event-list');
+      listContainer.innerHTML = `
+        <div style="color: #dc2626; padding: 20px; text-align: center;">
+          <p>無法讀取資料。</p>
+          <p style="font-size: 0.85rem; margin-top: 8px;">${message}</p>
+        </div>
+      `;
+    }
+
+    // Stale-while-revalidate：先用快取立刻渲染，背景更新
+    (async function () {
+      const cached = localStorage.getItem(CACHE_KEY);
+      const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
+
+      if (cached) {
+        render(cached);
+        setStatus('cached', `顯示快取版本（${formatTime(parseInt(cachedTime))}），更新中…`);
+      } else {
+        setStatus('refreshing', '載入中…');
+      }
+
+      try {
+        const res = await fetch(SHEET_URL, { cache: 'no-store' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const csv = await res.text();
+
+        if (csv !== cached) {
+          render(csv);
+          localStorage.setItem(CACHE_KEY, csv);
+          localStorage.setItem(CACHE_TIME_KEY, Date.now().toString());
+          setStatus('live', `已更新至最新版本（${formatTime(Date.now())}）`);
+        } else {
+          setStatus('live', `資料為最新版本（${formatTime(Date.now())}）`);
+          localStorage.setItem(CACHE_TIME_KEY, Date.now().toString());
+        }
+      } catch (err) {
+        if (cached) {
+          setStatus('cached', `離線中，顯示快取版本（${formatTime(parseInt(cachedTime))}）`);
+        } else {
+          showError(err.message);
+          setStatus('cached', '無法連線');
+        }
+      }
+    })();
   </script>
 </body>
 </html>
