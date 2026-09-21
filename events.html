@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>活動日程 | Events</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      color-scheme: light;
+      --portal-radius: 3px;
+      --portal-border: #d7dee8;
+      --portal-border-strong: #c7d2e0;
+      --portal-text: #0f172a;
+      --portal-muted: #64748b;
+      --portal-accent: #0369a1;
+      --portal-accent-soft: #e0f2fe;
+      --portal-bg: #f8fafc;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: var(--portal-bg);
+      color: var(--portal-text);
+    }
+
+    .rounded-2xl,
+    .rounded-xl,
+    .rounded-lg,
+    .rounded {
+      border-radius: var(--portal-radius) !important;
+    }
+
+    .page-shell {
+      width: 100%;
+    }
+
+    .page-panel {
+      background: #fff;
+      border: 1px solid var(--portal-border);
+      border-radius: var(--portal-radius);
+      box-shadow: 0 16px 48px -40px rgba(15, 23, 42, 0.45);
+    }
+
+    .page-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .year-tab {
+      appearance: none;
+      border: 1px solid var(--portal-border-strong);
+      background: #fff;
+      color: var(--portal-muted);
+      padding: 8px 14px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+    }
+
+    .year-tab:hover {
+      border-color: var(--portal-accent);
+      color: var(--portal-accent);
+      transform: translateY(-1px);
+    }
+
+    .year-tab.is-active {
+      background: var(--portal-accent-soft);
+      border-color: #7dd3fc;
+      color: #075985;
+    }
+
+    .year-panel {
+      display: none;
+    }
+
+    .year-panel.is-active {
+      display: block;
+    }
+
+    .events-table-wrap {
+      overflow-x: auto;
+    }
+
+    .events-table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 980px;
+      font-size: 0.92rem;
+    }
+
+    .events-table thead th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: #f8fbff;
+      color: #334155;
+      text-align: left;
+      font-size: 0.8rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--portal-border);
+      white-space: nowrap;
+    }
+
+    .events-table tbody td {
+      padding: 6px 14px;
+      border-bottom: 1px solid #e8edf3;
+      vertical-align: top;
+      line-height: 1.15;
+    }
+
+    #year-panels > section.year-panel.is-active > table > tbody > tr > td.col-date {
+      padding: 6px 14px;
+      line-height: 1.15;
+    }
+
+    .events-table tbody tr:hover {
+      background: #fbfdff;
+    }
+
+    .event-row.is-outdated,
+    .event-row.is-outdated:hover {
+      background: #f8fafc;
+    }
+
+    .event-row.is-outdated td {
+      background: #f8fafc;
+    }
+
+    .col-date {
+      width: 136px;
+      color: inherit;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .col-activity {
+      width: 260px;
+    }
+
+    .col-category {
+      width: 124px;
+      white-space: nowrap;
+    }
+
+    .col-related {
+      width: 180px;
+    }
+
+    .activity-link {
+      color: #2563eb;
+      font-weight: 700;
+      text-decoration: none;
+      transition: color 0.2s ease, text-decoration-color 0.2s ease;
+    }
+
+    .activity-link:hover {
+      color: #1d4ed8;
+      text-decoration: underline;
+    }
+
+    .event-category {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 10px;
+      border-radius: var(--portal-radius);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      background: #e2e8f0;
+      color: #334155;
+    }
+
+    .category-work { background: #e0f2fe; color: #0369a1; }
+    .category-research { background: #dcfce7; color: #047857; }
+    .category-student { background: #fef3c7; color: #b45309; }
+    .category-exchange { background: #ede9fe; color: #6b21a8; }
+    .category-award { background: #fef3c7; color: #a16207; }
+    .category-degree { background: #ffedd5; color: #c2410c; }
+
+    .resource-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .resource-link {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 10px;
+      border: 1px solid var(--portal-border-strong);
+      border-radius: var(--portal-radius);
+      color: #2563eb;
+      text-decoration: none;
+      font-size: 0.8rem;
+      font-weight: 600;
+      background: #fff;
+      transition: border-color 0.2s ease, color 0.2s ease;
+      word-break: break-all;
+    }
+
+    .resource-link:hover {
+      border-color: #60a5fa;
+      color: #1d4ed8;
+    }
+
+    .col-description {
+      font-size: 0.82rem;
+      line-height: 1.15;
+      color: #475569;
+    }
+
+    .empty-cell {
+      color: #94a3b8;
+    }
+
+    .data-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.75rem;
+      color: var(--portal-muted);
+      padding: 4px 10px;
+      background: rgba(148, 163, 184, 0.12);
+      border-radius: var(--portal-radius);
+    }
+
+    .data-status .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #94a3b8;
+    }
+
+    .data-status.live .dot { background: #22c55e; }
+    .data-status.cached .dot { background: #f59e0b; }
+    .data-status.refreshing .dot {
+      background: #0ea5e9;
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    @media (max-width: 720px) {
+      .page-panel {
+        border-left: none;
+        border-right: none;
+        border-radius: 0;
+      }
+
+      .page-tabs {
+        overflow-x: auto;
+        padding-bottom: 2px;
+      }
+
+      .events-table {
+        min-width: 0;
+      }
+
+      .events-table thead {
+        display: none;
+      }
+
+      .events-table,
+      .events-table tbody,
+      .events-table tr,
+      .events-table td {
+        display: block;
+        width: 100%;
+      }
+
+      .events-table tbody tr {
+        border-bottom: 1px solid var(--portal-border);
+        padding: 6px 0;
+      }
+
+      .events-table tbody td {
+        border-bottom: none;
+        padding: 10px 14px;
+      }
+
+      .events-table tbody td::before {
+        content: attr(data-label);
+        display: block;
+        margin-bottom: 4px;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--portal-muted);
+      }
+
+      .col-date,
+      .col-activity,
+      .col-category,
+      .col-related {
+        width: auto;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen text-slate-800 antialiased">
+  <header class="sticky top-0 border-b border-slate-200 bg-white/96 backdrop-blur supports-[backdrop-filter]:bg-white/80">
+    <div class="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4">
+      <a href="index.html" class="text-lg font-semibold tracking-wide text-sky-800 transition-colors hover:text-sky-600">NTU Journalism Student Services Portal</a>
+      <div class="flex items-center gap-3 text-xs font-medium">
+        <a href="index.html" class="text-slate-500 transition hover:text-sky-600">返回首頁</a>
+        <a href="https://graduate-course-admin-sb2s54rpvq-de.a.run.app/" target="_blank" rel="noopener noreferrer" class="text-slate-400 transition hover:text-sky-600">Admin</a>
+      </div>
+    </div>
+  </header>
+
+  <main class="page-shell mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-10">
+    <section class="space-y-3" id="events-intro">
+      <div class="flex flex-wrap items-center gap-3">
+        <h1 class="text-3xl font-semibold tracking-tight text-sky-900">活動日程</h1>
+        <span id="events-status" class="data-status">
+          <span class="dot"></span>
+          <span class="label">載入中…</span>
+        </span>
+      </div>
+    </section>
+
+    <section class="page-panel p-4 sm:p-5" id="events-panel">
+      <div class="page-tabs" id="year-tabs" aria-label="活動年份切換"></div>
+      <div class="mt-4" id="year-panels"></div>
+    </section>
+  </main>
+
+  <footer class="border-t border-slate-200 bg-white/90">
+    <div class="mx-auto flex w-full max-w-6xl flex-col gap-1 px-4 py-6 text-xs text-slate-400">
+      <span>國立臺灣大學 新聞研究所 | NTU Graduate Institute of Journalism</span>
+      <span>如有建議或需求，請聯繫系辦。</span>
+    </div>
+  </footer>
+
+  <script>
+    const DATA_URL = "data/regular_event.json";
+    const CACHE_KEY = "events_json_v2";
+    const CACHE_TIME_KEY = "events_json_time_v2";
+    const DEFAULT_YEAR = new Date().getFullYear();
+
+    function setStatus(state, label) {
+      const el = document.getElementById('events-status');
+      el.className = `data-status ${state}`;
+      el.querySelector('.label').textContent = label;
+    }
+
+    function formatTime(ts) {
+      const d = new Date(ts);
+      const pad = n => String(n).padStart(2, '0');
+      return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+    }
+
+    function parseDue(value) {
+      const text = String(value || '').trim();
+      const match = text.match(/^(\d{4})[/-](\d{1,2})[/-](\d{1,2})$/);
+      if (!match) {
+        return null;
+      }
+      return {
+        year: Number(match[1]),
+        month: Number(match[2]),
+        day: Number(match[3]),
+      };
+    }
+
+    function getEventYear(event) {
+      const explicitYear = Number.parseInt(event.year, 10);
+      if (Number.isFinite(explicitYear)) {
+        return explicitYear;
+      }
+
+      const due = parseDue(event.due);
+      if (due) {
+        return due.year;
+      }
+
+      return DEFAULT_YEAR;
+    }
+
+    function getDueLabel(event) {
+      const due = String(event.due || '').trim();
+      if (due) {
+        return due;
+      }
+
+      const month = Number.parseInt(event.month, 10);
+      if (Number.isFinite(month) && month >= 1 && month <= 12) {
+        return `每年 ${String(month).padStart(2, '0')} 月`;
+      }
+
+      return '—';
+    }
+
+    function getSortValue(event) {
+      const due = parseDue(event.due);
+      const year = getEventYear(event);
+      const month = due ? due.month : Number.parseInt(event.month, 10) || 99;
+      const day = due ? due.day : 99;
+      return `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    }
+
+    function isOutdatedEvent(event) {
+      const due = parseDue(event.due);
+      if (!due) {
+        return false;
+      }
+
+      const today = new Date();
+      const cutoff = new Date(Date.UTC(due.year, due.month - 1, due.day));
+      const current = new Date(Date.UTC(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate(),
+      ));
+      return cutoff < current;
+    }
+
+    function getCategoryClass(category) {
+      switch (String(category || '').trim()) {
+        case '工讀獎助':
+          return 'category-work';
+        case '學術研討':
+          return 'category-research';
+        case '學生活動':
+          return 'category-student';
+        case '海外交換':
+          return 'category-exchange';
+        case '新聞報獎':
+          return 'category-award';
+        case '學位考試':
+          return 'category-degree';
+        default:
+          return '';
+      }
+    }
+
+    function getResourceItems(event) {
+      const raw = String(event.related || event.resource || event.attachment || '').trim();
+      if (!raw) {
+        return [];
+      }
+
+      return raw
+        .split(/[\n;]+/)
+        .map(item => item.trim())
+        .filter(Boolean)
+        .map((item) => {
+          const labelMatch = item.match(/^(.+?)\s*[\|\uFF5C]\s*(https?:\/\/\S+)$/i);
+          if (labelMatch) {
+            return { label: labelMatch[1].trim(), url: labelMatch[2].trim() };
+          }
+
+          const url = item;
+          const lower = url.toLowerCase();
+          let label = '連結';
+          if (lower.endsWith('.pdf')) label = 'PDF';
+          else if (lower.endsWith('.docx')) label = 'DOCX';
+          else if (lower.endsWith('.doc')) label = 'DOC';
+          else if (lower.endsWith('.ppt') || lower.endsWith('.pptx')) label = 'PPT';
+          return { label, url };
+        });
+    }
+
+    function buildTableRows(events) {
+      if (events.length === 0) {
+        return '<tr><td colspan="5" class="px-4 py-8 text-center text-sm text-slate-500">此年份沒有資料。</td></tr>';
+      }
+
+      return events.map((event) => {
+        const link = String(event.link || '').trim();
+        const name = String(event.name || '').trim();
+        const category = String(event.category || '').trim() || '其他';
+        const categoryClass = getCategoryClass(category);
+        const resources = getResourceItems(event);
+        const description = String(event.description || '').trim();
+        const dueLabel = getDueLabel(event);
+
+        const activityHtml = link
+          ? `<a class="activity-link" href="${escapeHtml(link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(name)}</a>`
+          : `<span>${escapeHtml(name)}</span>`;
+
+        const resourceHtml = resources.length
+          ? `<div class="resource-list">${resources.map((item) => `<a class="resource-link" href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.label)}</a>`).join('')}</div>`
+          : '<span class="empty-cell">—</span>';
+
+        return `
+          <tr class="event-row${isOutdatedEvent(event) ? ' is-outdated' : ''}">
+            <td class="col-date" data-label="截止日期">${escapeHtml(dueLabel)}</td>
+            <td class="col-activity" data-label="活動">${activityHtml}</td>
+            <td class="col-category" data-label="類別"><span class="event-category ${categoryClass}">${escapeHtml(category)}</span></td>
+            <td class="col-related" data-label="相關資料">${resourceHtml}</td>
+            <td class="col-description" data-label="說明">${description ? escapeHtml(description) : '<span class="empty-cell">—</span>'}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function render(payload) {
+      const data = Array.isArray(payload?.events) ? payload.events : [];
+      const listContainer = document.getElementById('year-panels');
+      const tabsContainer = document.getElementById('year-tabs');
+
+      const items = data.map((event, index) => {
+        const year = getEventYear(event);
+        return {
+          event,
+          index,
+          year,
+          sortValue: getSortValue(event),
+        };
+      }).sort((a, b) => {
+        if (a.year !== b.year) return a.year - b.year;
+        if (a.sortValue !== b.sortValue) return a.sortValue.localeCompare(b.sortValue);
+        return a.index - b.index;
+      });
+
+      const years = [...new Set(items.map(item => item.year))].sort((a, b) => a - b);
+      const activeYear = years.includes(DEFAULT_YEAR) ? DEFAULT_YEAR : (years[years.length - 1] || DEFAULT_YEAR);
+
+      if (years.length === 0) {
+        tabsContainer.innerHTML = '';
+        listContainer.innerHTML = '<div class="p-8 text-center text-sm text-slate-500">目前沒有可顯示的活動資料。</div>';
+        return;
+      }
+
+      tabsContainer.innerHTML = years.map((year) => `
+        <button type="button" class="year-tab${year === activeYear ? ' is-active' : ''}" data-year="${year}" aria-selected="${year === activeYear ? 'true' : 'false'}">${year}</button>
+      `).join('');
+
+      listContainer.innerHTML = years.map((year) => {
+        const yearEvents = items.filter(item => item.year === year).map(item => item.event);
+        return `
+          <section class="year-panel${year === activeYear ? ' is-active' : ''}" data-year-panel="${year}">
+            <table class="events-table">
+              <thead>
+                <tr>
+                  <th>截止日期</th>
+                  <th>活動</th>
+                  <th>類別</th>
+                  <th>相關資料</th>
+                  <th>說明</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${buildTableRows(yearEvents)}
+              </tbody>
+            </table>
+          </section>
+        `;
+      }).join('');
+
+      tabsContainer.querySelectorAll('.year-tab').forEach((button) => {
+        button.addEventListener('click', () => {
+          const year = button.dataset.year;
+          tabsContainer.querySelectorAll('.year-tab').forEach((tab) => {
+            const active = tab === button;
+            tab.classList.toggle('is-active', active);
+            tab.setAttribute('aria-selected', active ? 'true' : 'false');
+          });
+          listContainer.querySelectorAll('.year-panel').forEach((panel) => {
+            panel.classList.toggle('is-active', panel.dataset.yearPanel === year);
+          });
+        });
+      });
+    }
+
+    function showError(message) {
+      const listContainer = document.getElementById('year-panels');
+      const tabsContainer = document.getElementById('year-tabs');
+      tabsContainer.innerHTML = '';
+      listContainer.innerHTML = `
+        <div class="p-8 text-center text-sm text-rose-600">
+          <p>無法讀取資料。</p>
+          <p class="mt-2 text-xs text-rose-500">${escapeHtml(message)}</p>
+        </div>
+      `;
+    }
+
+    (async function () {
+      const cached = localStorage.getItem(CACHE_KEY);
+      const cachedTime = localStorage.getItem(CACHE_TIME_KEY);
+      let cacheRendered = false;
+
+      if (cached) {
+        try {
+          render(JSON.parse(cached));
+          cacheRendered = true;
+        } catch (error) {
+          localStorage.removeItem(CACHE_KEY);
+          localStorage.removeItem(CACHE_TIME_KEY);
+          showError(`快取解析失敗：${error.message}`);
+        }
+        if (cacheRendered) {
+          setStatus('cached', `顯示快取版本（${formatTime(parseInt(cachedTime, 10))}），更新中…`);
+        } else {
+          setStatus('refreshing', '載入中…');
+        }
+      } else {
+        setStatus('refreshing', '載入中…');
+      }
+
+      try {
+        const res = await fetch(DATA_URL, { cache: 'no-store' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const payload = await res.json();
+
+        if (JSON.stringify(payload) !== cached) {
+          render(payload);
+          localStorage.setItem(CACHE_KEY, JSON.stringify(payload));
+          localStorage.setItem(CACHE_TIME_KEY, Date.now().toString());
+          setStatus('live', `已更新至最新版本（${formatTime(Date.now())}）`);
+        } else {
+          setStatus('live', `資料為最新版本（${formatTime(Date.now())}）`);
+          localStorage.setItem(CACHE_TIME_KEY, Date.now().toString());
+        }
+      } catch (err) {
+        if (cacheRendered) {
+          setStatus('cached', `離線中，顯示快取版本（${formatTime(parseInt(cachedTime, 10))}）`);
+        } else {
+          showError(err.message);
+          setStatus('cached', '無法連線');
+        }
+      }
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,91 @@
+{
+  "skill_name": "graduate-admin-regression-check",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Open the graduate course admin UI, edit one advisee record, save it, and confirm the change persists after reload.",
+      "expected_output": "A regression note that confirms load, edit, save, and persistence, or explains which step was blocked.",
+      "assertions": [
+        {
+          "text": "Reports the admin surface, edit action, save result, and post-reload persistence separately.",
+          "type": "contains"
+        },
+        {
+          "text": "Names the canonical JSON file that received the change.",
+          "type": "contains"
+        },
+        {
+          "text": "Does not treat a successful UI response as proof unless persistence after reload is confirmed.",
+          "type": "contains"
+        },
+        {
+          "text": "Confirms backup creation or backup behavior when the overwrite path applies.",
+          "type": "contains"
+        }
+      ],
+      "files": [
+        "course_admin.html",
+        "course_admin.py",
+        "cloudrun_admin.py",
+        "data/advisees.json"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Check whether the admin page is blocked by IAP or login and distinguish auth failure from a JSON schema problem.",
+      "expected_output": "A short blocked-or-pass report that names the failure layer and does not confuse auth issues with data issues.",
+      "assertions": [
+        {
+          "text": "Identifies whether the blocker is auth/IAP or data/schema related.",
+          "type": "contains"
+        },
+        {
+          "text": "Uses the terms `blocked`, `pass`, or equivalent to classify the result explicitly.",
+          "type": "contains"
+        },
+        {
+          "text": "Avoids blaming the JSON schema when the page is actually unreachable.",
+          "type": "contains"
+        },
+        {
+          "text": "Does not convert an auth failure into a data regression without a successful login path.",
+          "type": "contains"
+        }
+      ],
+      "files": [
+        "course_admin.html",
+        "cloudrun_admin.py"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Make a small course edit in the admin UI and verify that the canonical JSON gets a backup before overwrite.",
+      "expected_output": "A regression note that confirms backup behavior and identifies the canonical file that was written.",
+      "assertions": [
+        {
+          "text": "Confirms the canonical file written and the backup path or backup behavior.",
+          "type": "contains"
+        },
+        {
+          "text": "Separates save success from backup creation.",
+          "type": "contains"
+        },
+        {
+          "text": "Mentions the course admin surface rather than a generic page-edit flow.",
+          "type": "contains"
+        },
+        {
+          "text": "Verifies the saved course change is reflected after the page reloads.",
+          "type": "contains"
+        }
+      ],
+      "files": [
+        "course_admin.html",
+        "course_admin.py",
+        "cloudrun_admin.py",
+        "data/courses.json",
+        "backup/"
+      ]
+    }
+  ]
+}

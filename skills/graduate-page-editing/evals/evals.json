@@ -1,0 +1,58 @@
+{
+  "skill_name": "graduate-page-editing",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Update a public page so every standalone content section has a stable `id` and every repeated block uses a semantic class, while keeping the visible copy unchanged.",
+      "expected_output": "A short page edit note or a blocked report if the page structure or source content is missing.",
+      "assertions": [
+        {
+          "text": "Names the edited page and the structural changes separately.",
+          "type": "contains"
+        },
+        {
+          "text": "Mentions stable `id` values for standalone sections.",
+          "type": "contains"
+        },
+        {
+          "text": "Mentions semantic classes for repeated blocks instead of styling-only hooks.",
+          "type": "contains"
+        },
+        {
+          "text": "Keeps the visible copy source-bound and does not invent new content.",
+          "type": "contains"
+        }
+      ],
+      "files": [
+        "index.html",
+        "courseplan.html",
+        "advisee.html",
+        "style.css"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Refactor a section-heavy page using the repo's source content and verify the page still renders with readable anchors for later regression checks.",
+      "expected_output": "A short verification note that names the source, the target page, and the render result, or a blocked report if the source is unavailable.",
+      "assertions": [
+        {
+          "text": "States the source content used for the edit.",
+          "type": "contains"
+        },
+        {
+          "text": "Verifies the target page still renders after the change.",
+          "type": "contains"
+        },
+        {
+          "text": "Keeps the section anchors readable and reusable for follow-up checks.",
+          "type": "contains"
+        }
+      ],
+      "files": [
+        "courseplan.html",
+        "courses.html",
+        "advisee.html"
+      ]
+    }
+  ]
+}

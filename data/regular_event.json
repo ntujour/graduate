@@ -1,0 +1,169 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-06-19T12:21:29.988636+00:00",
+  "source": {
+    "type": "canonical-json",
+    "value": "data/regular_event.json",
+    "note": "Official source for public pages and admin edits. CSV and Google Sheet files are import sources only."
+  },
+  "importSource": {
+    "type": "csv",
+    "value": "data/regular_event.csv",
+    "note": "Imported from the Sheets sync pipeline."
+  },
+  "events": [
+    {
+      "id": "regular-event-001",
+      "name": "中央社海外特派員",
+      "category": "工讀獎助",
+      "month": "4",
+      "due": "2026/04/20",
+      "description": "北區場截止時間",
+      "link": "https://cna-octp.com.tw/"
+    },
+    {
+      "id": "regular-event-003",
+      "name": "端傳媒「專題記者成長計劃」",
+      "category": "工讀獎助",
+      "month": "8",
+      "due": "2026/02/27",
+      "description": "2025暑假為第三期，計劃將於2025年9月開始，到2026年1月完結。項目通過遠程協作方式進行，入選記者需要參與每週一次的專題會或項目推進會議，與導師一對一學習，並完成至少一篇深度報導或多篇深度解析，或一份讓新聞與受眾得以互動的作品。",
+      "link": "https://theinitium.com/article/20250723-initiumnews-mentorship-project?fbclid=IwY2xjawLt_fNleHRuA2FlbQIxMABicmlkETFhOFZUaEdrc0h2elJFdTFDAR7hRzEu1IAmDiNWBr6v4IOh9J9dp4WZMHZqDKQdM2Ssg0h5c-WrptCfAI8HQg_aem_Pfr-LY9AxzQyGqHyDE1IRA&utm_content=buffer3ab5c&utm_medium=social&utm_source=facebook&utm_campaign=fb_post"
+    },
+    {
+      "id": "regular-event-004",
+      "name": "資訊社會年會投稿",
+      "category": "學術研討",
+      "month": "7",
+      "due": "2026/07/15",
+      "description": "每年七月開始徵稿，通常在上學期期中舉辦。簽訂指導並經指導教授同意且題目相符，可遞交申請抵免計劃書口試。",
+      "link": "https://www.tais.org.tw/zh-TW/article/133"
+    },
+    {
+      "id": "regular-event-005",
+      "name": "臺灣傳播年會投稿",
+      "category": "學術研討",
+      "month": "2",
+      "due": "2026/03/02",
+      "description": "每年二月底到三月徵稿，2025年於03/02截稿，通常在下學期期末後舉辦。簽訂指導並經指導教授同意且題目相符，可遞交申請抵免計劃書口試。",
+      "link": ""
+    },
+    {
+      "id": "regular-event-006",
+      "name": "小畢典",
+      "category": "學生活動",
+      "month": "6",
+      "due": "2026/06/06",
+      "description": "",
+      "link": ""
+    },
+    {
+      "id": "regular-event-007",
+      "name": "開學前新生座談",
+      "category": "學生活動",
+      "month": "8",
+      "due": "",
+      "description": "每年八月底開學前舉行",
+      "link": ""
+    },
+    {
+      "id": "regular-event-008",
+      "name": "春季海外交換",
+      "category": "海外交換",
+      "month": "4",
+      "due": "",
+      "description": "每年約於交換學期的前年四月舉辦",
+      "link": ""
+    },
+    {
+      "id": "regular-event-009",
+      "name": "秋季海外交換",
+      "category": "海外交換",
+      "month": "11",
+      "due": "",
+      "description": "每年約於出國當年的前年十一月舉辦",
+      "link": ""
+    },
+    {
+      "id": "regular-event-010",
+      "name": "上學期所內工讀",
+      "category": "工讀獎助",
+      "month": "8",
+      "due": "",
+      "description": "",
+      "link": ""
+    },
+    {
+      "id": "regular-event-011",
+      "name": "下學期所內工讀",
+      "category": "工讀獎助",
+      "month": "1",
+      "due": "",
+      "description": "",
+      "link": ""
+    },
+    {
+      "id": "regular-event-012",
+      "name": "全球華文永續獎",
+      "category": "新聞報獎",
+      "month": "6",
+      "due": "2026/06/30",
+      "description": "每年六月舉辦，六月底截止。有平面、融媒體、長影音、短影音等獎項。過去曾有不少學生獲獎。須為競賽前一年發表之作品，例如2024/07/01~2025/06/30",
+      "link": "https://www.newsaward.org/"
+    },
+    {
+      "id": "regular-event-013",
+      "name": "曾虛白先生新聞獎",
+      "category": "新聞報獎",
+      "month": "7",
+      "due": "2026/07/15",
+      "description": "每年七月舉辦，七月中截止，分文字、影音、短影音三種獎項。接受競賽前往前回溯約一年的作品，例如「須為113年7月1日至114年6月30日由學生在學時期所製作之作品（含應屆畢業生）」",
+      "link": "https://www.cna.com.tw/project/thp_award/"
+    },
+    {
+      "id": "regular-event-014",
+      "name": "吳舜文新聞獎",
+      "category": "新聞報獎",
+      "month": "7",
+      "due": "2026/07/31",
+      "description": "每年七月舉辦，七月底截止，有學生新聞報導獎。",
+      "link": "https://www.vivianwu.org.tw/"
+    },
+    {
+      "id": "regular-event-015",
+      "name": "SND Creative Competition: Best of News Design",
+      "category": "新聞報獎",
+      "month": "1",
+      "due": "2025/02/14",
+      "description": "每年約一月徵稿，二月中停止受理，包含Webpage、Interaction、Infographic的設計",
+      "link": "https://sndcontests.awardsplatform.com/"
+    },
+    {
+      "id": "regular-event-017",
+      "name": "申請碩士考試截止",
+      "category": "學位考試",
+      "month": "12",
+      "due": "2025/12/01",
+      "description": "每年大約12月初與四月底左右，截止後無法再申請",
+      "link": ""
+    },
+    {
+      "id": "regular-event-018",
+      "name": "申請碩士考試截止",
+      "category": "學位考試",
+      "month": "4",
+      "due": "2026/04/30",
+      "description": "每年大約12月初與四月底左右，截止後無法再申請",
+      "link": ""
+    },
+    {
+      "id": "regular-event-019",
+      "name": "2026 新生暑前座談",
+      "category": "學生活動",
+      "month": "6",
+      "due": "2026/06/15",
+      "description": "",
+      "link": "https://docs.google.com/presentation/d/1uPqvLjCajTps5gQQjx6Ck1SF8u7k4RXfLQPUEpjL1C0/edit?usp=sharing"
+    }
+  ]
+}

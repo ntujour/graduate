@@ -1,0 +1,87 @@
+{
+  "skill_name": "graduate-deploy-verify",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Publish the updated `advisee.html` to GCS and confirm the public URL serves the same content as the local file.",
+      "expected_output": "A deploy note that names the local artifact, the uploaded object path, and the public URL verification result.",
+      "assertions": [
+        {
+          "text": "Names the local artifact, the uploaded object path, and the public URL separately.",
+          "type": "contains"
+        },
+        {
+          "text": "Confirms the remote page matches the local file rather than assuming upload success is enough.",
+          "type": "contains"
+        },
+        {
+          "text": "Uses the deployment surface under `gs://ntujour-graduate` or equivalent public hosting.",
+          "type": "contains"
+        },
+        {
+          "text": "Includes metadata or cache-policy evidence when the public response looks stale.",
+          "type": "contains"
+        }
+      ],
+      "files": [
+        "advisee.html",
+        "gs://ntujour-graduate/advisee.html"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Verify that a deployed page is stale because of cache behavior and not because the wrong object was uploaded.",
+      "expected_output": "A verification report that separates cache issues from object-path issues and says what was checked first.",
+      "assertions": [
+        {
+          "text": "Separates cache behavior from object-path mistakes.",
+          "type": "contains"
+        },
+        {
+          "text": "States what was checked first before concluding the page was stale.",
+          "type": "contains"
+        },
+        {
+          "text": "Avoids claiming a cache issue without checking the uploaded object path.",
+          "type": "contains"
+        },
+        {
+          "text": "Names the public URL and the local artifact in the same report.",
+          "type": "contains"
+        }
+      ],
+      "files": [
+        "courseplan.html",
+        "gs://ntujour-graduate/courseplan.html"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "After deploying a JSON or HTML update, confirm the metadata and public response still match the intended content type and cache policy.",
+      "expected_output": "A deploy verification note that includes metadata or cache-policy evidence and the final public URL status.",
+      "assertions": [
+        {
+          "text": "Mentions metadata or cache policy evidence in addition to the public URL result.",
+          "type": "contains"
+        },
+        {
+          "text": "Confirms the content type or cache policy is aligned with the deployed asset.",
+          "type": "contains"
+        },
+        {
+          "text": "Does not stop at bucket upload alone.",
+          "type": "contains"
+        },
+        {
+          "text": "States whether the public object matched the intended local artifact after deployment.",
+          "type": "contains"
+        }
+      ],
+      "files": [
+        "data/courses.json",
+        "courseplan.html",
+        "gs://ntujour-graduate/"
+      ]
+    }
+  ]
+}

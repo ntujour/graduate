@@ -25,7 +25,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | `advisee.html` | 指導學生狀態 | `data/advisee.csv` |
 | `courses.html` | 課程地圖（互動式拖拉規劃）| `data/courses.csv` |
 | `courseplan.html` | 開課規劃（學期課程表）| `data/courses.csv` |
-| `regular_event.html` | 常態活動時程 | `data/regular_event.csv` |
+| `events.html` | 活動年表 | `data/regular_event.json` |
 
 ## 資料更新指令
 
@@ -38,7 +38,7 @@ python update_forms.py
 - `office.csv` - 相關表單/公告
 - `advisee.csv` - 指導學生資料
 - `courses.csv` - 課程資訊
-- `regular_event.csv` - 常態活動
+- `regular_event.csv` - 活動年表匯入來源
 
 ## 目錄結構
 

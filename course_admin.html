@@ -1,0 +1,2770 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>課程資料管理</title>
+  <script src="courses-data.js"></script>
+  <style>
+    :root {
+      --portal-primary: #0369a1;
+      --portal-accent: #0ea5e9;
+      --portal-border: rgba(148, 163, 184, 0.35);
+      --portal-muted: #64748b;
+      --portal-radius: 3px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: #f1f5f9;
+      color: #0f172a;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      border-bottom: 1px solid var(--portal-border);
+      background: rgba(255, 255, 255, 0.95);
+    }
+
+    .header-inner,
+    main {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    body[data-mode="bulk"] .header-inner,
+    body[data-mode="bulk"] main,
+    body[data-mode="advisees"] .header-inner,
+    body[data-mode="advisees"] main,
+    body[data-mode="events"] .header-inner,
+    body[data-mode="events"] main,
+    body[data-mode="alumni"] .header-inner,
+    body[data-mode="alumni"] main {
+      width: min(1680px, calc(100% - 32px));
+    }
+
+    .header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 0;
+    }
+
+    .title-row {
+      display: grid;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .admin-tabs {
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 6px;
+      max-width: 100%;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding-bottom: 2px;
+    }
+
+    .admin-tab {
+      flex: 0 0 auto;
+      padding: 6px 9px;
+      font-size: 0.82rem;
+    }
+
+    a.admin-tab {
+      border: 1px solid var(--portal-border);
+      border-radius: var(--portal-radius);
+      background: #ffffff;
+      color: #0f172a;
+      text-decoration: none;
+    }
+
+    .admin-tab[aria-selected="true"] {
+      border-color: #0369a1;
+      background: #e0f2fe;
+      color: #075985;
+      font-weight: 700;
+    }
+
+    h1 {
+      margin: 0;
+      color: #075985;
+      font-size: 1.15rem;
+      letter-spacing: 0;
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: minmax(320px, 0.9fr) minmax(420px, 1.1fr);
+      gap: 18px;
+      padding: 24px 0 48px;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button,
+    .button-link {
+      border: 1px solid var(--portal-border);
+      border-radius: var(--portal-radius);
+      background: #ffffff;
+      color: #0f172a;
+      cursor: pointer;
+      padding: 8px 11px;
+    }
+
+    .button-link {
+      display: inline-flex;
+      align-items: center;
+      text-decoration: none;
+    }
+
+    button.primary {
+      border-color: #0369a1;
+      background: #0369a1;
+      color: #ffffff;
+    }
+
+    button.danger {
+      border-color: rgba(220, 38, 38, 0.35);
+      color: #b91c1c;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .panel {
+      min-width: 0;
+      border: 1px solid var(--portal-border);
+      border-radius: var(--portal-radius);
+      background: rgba(255, 255, 255, 0.96);
+    }
+
+    .bulk-panel {
+      grid-column: 1 / -1;
+    }
+
+    .advisee-panel {
+      grid-column: 1 / -1;
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border-bottom: 1px solid var(--portal-border);
+      padding: 12px;
+    }
+
+    .panel-title {
+      font-weight: 700;
+      color: #0f172a;
+    }
+
+    .search-row {
+      display: grid;
+      grid-template-columns: 1fr 150px;
+      gap: 8px;
+      padding: 12px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.22);
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid rgba(148, 163, 184, 0.55);
+      border-radius: var(--portal-radius);
+      background: #ffffff;
+      color: #0f172a;
+      padding: 8px 9px;
+    }
+
+    textarea {
+      min-height: 82px;
+      resize: none;
+    }
+
+    .course-list {
+      max-height: calc(100vh - 228px);
+      overflow: auto;
+    }
+
+    .bulk-table-wrap {
+      max-height: none;
+      overflow-x: auto;
+      overflow-y: visible;
+    }
+
+    .bulk-table {
+      width: max-content;
+      min-width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 0.76rem;
+    }
+
+    .bulk-table th,
+    .bulk-table td {
+      border-right: 1px solid rgba(148, 163, 184, 0.22);
+      border-bottom: 1px solid rgba(148, 163, 184, 0.22);
+      background: #ffffff;
+      padding: 3px 4px;
+      vertical-align: top;
+    }
+
+    .bulk-table th {
+      position: sticky;
+      top: 0;
+      z-index: 4;
+      background: #eef2f7;
+      color: #334155;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    .bulk-table td:first-child,
+    .bulk-table th:first-child {
+      position: sticky;
+      left: 0;
+      z-index: 5;
+      min-width: 48px;
+      background: #f8fafc;
+    }
+
+    .bulk-table tr[data-selected="true"] td {
+      background: rgba(14, 165, 233, 0.08);
+    }
+
+    .bulk-table tr[data-inactive="true"] td,
+    .bulk-table tr[data-inactive="true"] td:first-child {
+      background: #f1f5f9;
+    }
+
+    .bulk-table tr[data-stale="true"] td,
+    .bulk-table tr[data-stale="true"] td:first-child {
+      background: #fef9c3;
+    }
+
+    .bulk-table tr[data-inactive="true"] input,
+    .bulk-table tr[data-inactive="true"] select,
+    .bulk-table tr[data-inactive="true"] textarea {
+      background: #f8fafc;
+      color: #94a3b8;
+    }
+
+    .bulk-table tr[data-stale="true"] input,
+    .bulk-table tr[data-stale="true"] select,
+    .bulk-table tr[data-stale="true"] textarea {
+      background: #fffbeb;
+      color: #854d0e;
+    }
+
+    .bulk-table input,
+    .bulk-table select,
+    .bulk-table textarea {
+      width: auto;
+      min-width: 72px;
+      padding: 3px 5px;
+      border-color: rgba(148, 163, 184, 0.45);
+      font-size: 0.76rem;
+      line-height: 1.2;
+    }
+
+    .bulk-table input[type="number"] {
+      min-width: 70px;
+    }
+
+    .bulk-table input[type="checkbox"] {
+      width: 16px;
+      min-width: 16px;
+      height: 16px;
+      margin: 2px auto;
+      display: block;
+    }
+
+    .bulk-table textarea {
+      min-width: 150px;
+      min-height: 34px;
+      height: 34px;
+      resize: none;
+      overflow: hidden;
+    }
+
+    .bulk-table .field-name {
+      width: 14em;
+    }
+
+    .bulk-table .field-en {
+      width: 18em;
+    }
+
+    .bulk-table .field-teacher {
+      width: 13em;
+    }
+
+    .bulk-table .field-category {
+      width: 10em;
+    }
+
+    .bulk-table .field-credit {
+      width: 4.5em;
+    }
+
+    .bulk-table .field-last,
+    .bulk-table .field-period {
+      width: 7.5em;
+    }
+
+    .bulk-table .field-skill {
+      width: 8em;
+    }
+
+    .bulk-table .field-description {
+      width: 18em;
+    }
+
+    .advisor-editor {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      border-bottom: 1px solid var(--portal-border);
+      padding: 12px;
+    }
+
+    .advisor-editor textarea {
+      min-height: 112px;
+      font-size: 0.86rem;
+    }
+
+    .advisee-search-row {
+      display: grid;
+      grid-template-columns: minmax(240px, 1fr) auto;
+      gap: 8px;
+      border-bottom: 1px solid var(--portal-border);
+      padding: 12px;
+    }
+
+    .cohort-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      border-bottom: 1px solid var(--portal-border);
+      padding: 10px 12px;
+      background: #f8fafc;
+    }
+
+    .cohort-tab {
+      padding: 6px 9px;
+      font-size: 0.78rem;
+    }
+
+    .cohort-tab[aria-selected="true"] {
+      border-color: #0369a1;
+      background: #e0f2fe;
+      color: #075985;
+      font-weight: 700;
+    }
+
+    .advisee-table tr[data-thesis-kind="research"] td {
+      background: #f5f3ff;
+    }
+
+    .advisee-table tr[data-thesis-kind="professional"] td {
+      background: #eff6ff;
+    }
+
+    .advisee-table tr[data-thesis-kind="image"] td {
+      background: #ecfeff;
+    }
+
+    .advisee-table tr[data-thesis-kind="multimedia"] td {
+      background: #f0fdf4;
+    }
+
+    .advisee-table tr[data-thesis-kind="research"] input,
+    .advisee-table tr[data-thesis-kind="research"] select,
+    .advisee-table tr[data-thesis-kind="professional"] input,
+    .advisee-table tr[data-thesis-kind="professional"] select,
+    .advisee-table tr[data-thesis-kind="image"] input,
+    .advisee-table tr[data-thesis-kind="image"] select,
+    .advisee-table tr[data-thesis-kind="multimedia"] input {
+      border-color: rgba(148, 163, 184, 0.4);
+    }
+
+    .advisee-table tr[data-thesis-kind="multimedia"] select {
+      border-color: rgba(148, 163, 184, 0.4);
+    }
+
+    .advisee-table tr[data-thesis-kind="research"] .field-thesis-type {
+      background: #ede9fe;
+      color: #6d28d9;
+      font-weight: 700;
+    }
+
+    .advisee-table tr[data-thesis-kind="professional"] .field-thesis-type {
+      background: #dbeafe;
+      color: #1d4ed8;
+      font-weight: 700;
+    }
+
+    .advisee-table tr[data-thesis-kind="image"] .field-thesis-type {
+      background: #cffafe;
+      color: #0e7490;
+      font-weight: 700;
+    }
+
+    .advisee-table tr[data-thesis-kind="multimedia"] .field-thesis-type {
+      background: #dcfce7;
+      color: #15803d;
+      font-weight: 700;
+    }
+
+    .advisee-table .field-cohort,
+    .advisee-table .field-admission-year {
+      width: 5.5em;
+    }
+
+    .advisee-table .field-name,
+    .advisee-table .field-thesis-type,
+    .advisee-table .field-work-type {
+      width: 8em;
+    }
+
+    .advisee-table .field-advisor {
+      width: 12em;
+    }
+
+    .advisee-table input[type="checkbox"].status-check {
+      margin: 2px auto;
+    }
+
+    .advisee-table .field-thesis-title {
+      width: 28em;
+    }
+
+    .advisee-table .field-job,
+    .advisee-table .field-url {
+      width: 14em;
+    }
+
+    .events-panel {
+      grid-column: 1 / -1;
+    }
+
+    .alumni-panel {
+      grid-column: 1 / -1;
+    }
+
+    .alumni-search-row {
+      display: grid;
+      grid-template-columns: minmax(260px, 1fr) auto;
+      gap: 8px;
+      border-bottom: 1px solid var(--portal-border);
+      padding: 12px;
+    }
+
+    .alumni-table .field-submitted-at {
+      width: 8.5em;
+    }
+
+    .alumni-table .field-status {
+      width: 6.5em;
+    }
+
+    .alumni-table .field-employment-status,
+    .alumni-table .field-country-select,
+    .alumni-table .field-contact-select {
+      width: 7.5em;
+    }
+
+    .alumni-table .field-tags {
+      width: 8em;
+    }
+
+    .alumni-table .field-name,
+    .alumni-table .field-email,
+    .alumni-table .field-contact,
+    .alumni-table .field-phone,
+    .alumni-table .field-line,
+    .alumni-table .field-city,
+    .alumni-table .field-country {
+      width: 7.5em;
+    }
+
+    .alumni-table .field-company,
+    .alumni-table .field-title,
+    .alumni-table .field-track {
+      width: 8.5em;
+    }
+
+    .alumni-table .field-note,
+    .alumni-table .field-provide,
+    .alumni-table .field-need,
+    .alumni-table .field-department,
+    .alumni-table .field-network,
+    .alumni-table .field-connect,
+    .alumni-table .field-message,
+    .alumni-table .field-authorization {
+      width: 9em;
+    }
+
+    .alumni-table .field-industry {
+      width: 8em;
+    }
+
+    .alumni-table input[readonly] {
+      background: #f8fafc;
+      color: #475569;
+    }
+
+    .events-search-row {
+      display: grid;
+      grid-template-columns: minmax(240px, 1fr) auto;
+      gap: 8px;
+      border-bottom: 1px solid var(--portal-border);
+      padding: 12px;
+    }
+
+    .events-table .field-name {
+      width: 16em;
+    }
+
+    .events-table .field-category {
+      width: 10em;
+    }
+
+    .events-table .field-month {
+      width: 5.5em;
+    }
+
+    .events-table .field-due {
+      width: 9em;
+    }
+
+    .events-table .field-description {
+      width: 30em;
+    }
+
+    .events-table .field-link {
+      width: 18em;
+    }
+
+    .events-table .field-related {
+      width: 18em;
+    }
+
+    .alumni-table input,
+    .alumni-table select {
+      text-overflow: ellipsis;
+    }
+
+    .bulk-table .wide {
+      min-width: 180px;
+    }
+
+    .bulk-table .name-field {
+      min-width: 170px;
+      font-weight: 700;
+    }
+
+    .course-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      width: 100%;
+      border: 0;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.22);
+      border-radius: 0;
+      background: transparent;
+      padding: 10px 12px;
+      text-align: left;
+    }
+
+    .course-row[aria-selected="true"] {
+      background: rgba(14, 165, 233, 0.1);
+    }
+
+    .course-row.inactive {
+      background: #f1f5f9;
+      color: #94a3b8;
+    }
+
+    .course-row.inactive .course-name,
+    .course-row.inactive .course-meta,
+    .course-row.inactive .sequence {
+      color: #94a3b8;
+    }
+
+    .course-row.stale {
+      background: #fef9c3;
+      color: #854d0e;
+    }
+
+    .course-row.stale .course-name,
+    .course-row.stale .course-meta,
+    .course-row.stale .sequence {
+      color: #854d0e;
+    }
+
+    .sequence {
+      color: var(--portal-muted);
+      font-size: 0.78rem;
+    }
+
+    .course-name {
+      font-weight: 700;
+      line-height: 1.35;
+    }
+
+    .course-meta,
+    .status {
+      color: var(--portal-muted);
+      font-size: 0.78rem;
+      line-height: 1.45;
+    }
+
+    .form-body {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      padding: 14px;
+    }
+
+    label {
+      display: grid;
+      gap: 5px;
+      color: #334155;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    .span-2 {
+      grid-column: span 2;
+    }
+
+    .semester-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+      gap: 8px;
+      padding: 8px;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      border-radius: var(--portal-radius);
+      background: #f8fafc;
+    }
+
+    .semester-check {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 500;
+    }
+
+    .semester-check input {
+      width: auto;
+    }
+
+    .form-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      border-top: 1px solid var(--portal-border);
+      padding: 12px 14px;
+    }
+
+    .status {
+      min-height: 1.2em;
+    }
+
+    @media (max-width: 900px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+
+      .course-list {
+        max-height: 360px;
+      }
+
+    }
+
+    @media (max-width: 640px) {
+      .header-inner {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .toolbar {
+        justify-content: flex-start;
+      }
+
+      .search-row,
+      .advisee-search-row,
+      .alumni-search-row,
+      .advisor-editor,
+      .form-body {
+        grid-template-columns: 1fr;
+      }
+
+      .span-2 {
+        grid-column: span 1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="title-row">
+        <h1 id="pageTitle">課程資料管理</h1>
+        <div class="admin-tabs" role="tablist" aria-label="管理資料類型">
+          <button type="button" class="admin-tab" id="courseTabBtn" aria-selected="true">課程資料</button>
+          <button type="button" class="admin-tab" id="adviseeTabBtn" aria-selected="false">指導學生</button>
+          <button type="button" class="admin-tab" id="eventTabBtn" aria-selected="false">常態活動</button>
+          <button type="button" class="admin-tab" id="alumniTabBtn" aria-selected="false">系友收件</button>
+          <a class="admin-tab" href="/news-admin/" aria-selected="false">最新消息</a>
+          <a class="admin-tab" href="/faculty/" aria-selected="false">教師管理</a>
+        </div>
+      </div>
+      <div class="toolbar">
+        <span class="status" id="adminModeStatus"></span>
+        <a class="button-link" href="https://storage.googleapis.com/ntujour-graduate/index.html" target="_blank" rel="noopener">公開首頁</a>
+<a class="button-link" href="https://graduate-alumni-form-sb2s54rpvq-de.a.run.app/" target="_blank" rel="noopener">系友問卷</a>
+<a class="button-link" href="https://homepage.ntu.edu.tw/~jour/" target="_blank" rel="noopener">主站首頁</a>
+        <button type="button" id="reloadBtn">重新載入</button>
+        <button type="button" id="bulkModeBtn">批次修改</button>
+        <button type="button" id="newBtn">新增課程</button>
+        <button type="button" class="primary" id="saveBtn">儲存 JSON</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="panel bulk-panel" id="bulkPanel" hidden>
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">大表編輯</div>
+          <div class="status" id="bulkStatus"></div>
+        </div>
+        <div class="toolbar">
+          <button type="button" id="addRowBtn">新增一列</button>
+        </div>
+      </div>
+      <div class="bulk-table-wrap">
+        <table class="bulk-table" id="bulkTable"></table>
+      </div>
+    </section>
+
+    <section class="panel" id="courseListPanel">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">課程清單</div>
+          <div class="status" id="listStatus"></div>
+        </div>
+      </div>
+      <div class="search-row">
+        <input id="searchInput" type="search" placeholder="搜尋課名、教師、類別">
+        <select id="categoryFilter">
+          <option value="">全部類別</option>
+        </select>
+      </div>
+      <div class="course-list" id="courseList"></div>
+    </section>
+
+    <section class="panel" id="courseFormPanel">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">課程內容</div>
+          <div class="status" id="editStatus"></div>
+        </div>
+      </div>
+      <form id="courseForm">
+        <div class="form-body">
+          <label>學分
+            <input name="credit" type="number" min="0" step="1">
+          </label>
+          <label>中文課名
+            <input name="cname" required>
+          </label>
+          <label>英文課名
+            <input name="cname_en">
+          </label>
+          <label>授課教師
+            <input name="offer_by">
+          </label>
+          <label>課程類別
+            <input name="category" list="categoryOptions">
+            <datalist id="categoryOptions"></datalist>
+          </label>
+          <label>最近開課
+            <input name="last">
+          </label>
+          <label>開課週期
+            <input name="period" list="periodOptions">
+            <datalist id="periodOptions">
+              <option value="每年"></option>
+              <option value="隔年"></option>
+              <option value="近三年未開"></option>
+              <option value="停開 / 不可選"></option>
+            </datalist>
+          </label>
+          <label>技能標籤
+            <input name="skill">
+          </label>
+          <label class="span-2">開課學期
+            <div class="semester-grid" id="semesterGrid"></div>
+          </label>
+          <label class="span-2">描述
+            <textarea name="description"></textarea>
+          </label>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="danger" id="deleteBtn">刪除課程</button>
+          <div class="toolbar">
+            <button type="button" id="duplicateBtn">複製課程</button>
+            <button type="submit" class="primary">套用到清單</button>
+          </div>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel advisee-panel" id="adviseePanel" hidden>
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">指導學生</div>
+          <div class="status" id="adviseeStatus"></div>
+        </div>
+        <div class="toolbar">
+          <button type="button" class="danger" id="deleteAdviseeRowsBtn">刪除勾選列</button>
+        </div>
+      </div>
+      <div class="advisor-editor">
+        <label>專任教師排序
+          <textarea id="fulltimeAdvisorsInput" placeholder="每行一位老師"></textarea>
+        </label>
+        <label>實務教師排序
+          <textarea id="adjunctAdvisorsInput" placeholder="每行一位老師"></textarea>
+        </label>
+      </div>
+      <div class="advisee-search-row">
+        <input id="adviseeSearchInput" type="search" placeholder="搜尋學生、老師、論文題目、工作">
+        <span class="status" id="adviseeListStatus"></span>
+      </div>
+      <div class="cohort-tabs" id="cohortTabs" role="tablist" aria-label="依屆次篩選"></div>
+      <datalist id="adviseeAdvisorOptions"></datalist>
+      <div class="bulk-table-wrap">
+        <table class="bulk-table advisee-table" id="adviseeTable"></table>
+      </div>
+    </section>
+
+    <section class="panel events-panel" id="eventsPanel" hidden>
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">常態活動</div>
+          <div class="status" id="eventStatus"></div>
+        </div>
+        <div class="toolbar">
+          <button type="button" class="danger" id="deleteEventRowsBtn">刪除勾選列</button>
+        </div>
+      </div>
+      <div class="events-search-row">
+        <input id="eventSearchInput" type="search" placeholder="搜尋活動名稱、類別、說明、連結">
+        <span class="status" id="eventListStatus"></span>
+      </div>
+      <div class="bulk-table-wrap">
+        <table class="bulk-table events-table" id="eventTable"></table>
+      </div>
+    </section>
+
+    <section class="panel alumni-panel" id="alumniPanel" hidden>
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">系友收件</div>
+          <div class="status" id="alumniStatus"></div>
+          <div class="status" id="alumniListStatus"></div>
+        </div>
+        <div class="toolbar">
+          <button type="button" id="downloadAlumniBackupBtn">下載 JSON 備份</button>
+          <button type="button" class="danger" id="deleteAlumniRowsBtn">刪除勾選列</button>
+        </div>
+      </div>
+      <div class="alumni-search-row">
+        <input id="alumniSearchInput" type="search" placeholder="搜尋姓名、Email、單位、標籤、備註、所友網絡">
+        <span class="status" id="alumniSearchStatus"></span>
+      </div>
+      <div class="bulk-table-wrap">
+        <table class="bulk-table alumni-table" id="alumniTable"></table>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const state = {
+      payload: null,
+      selectedId: null,
+      dirty: false,
+      versionToken: "",
+    };
+
+    const adviseeState = {
+      payload: null,
+      selectedCohort: "",
+      dirty: false,
+      versionToken: "",
+    };
+
+    const eventsState = {
+      payload: null,
+      selectedId: null,
+      dirty: false,
+      versionToken: "",
+    };
+
+    const alumniState = {
+      payload: null,
+      dirty: false,
+      versionToken: "",
+      dirtyObjectNames: new Set(),
+    };
+
+    const appState = {
+      active: "courses",
+    };
+
+    const adminState = {
+      readOnly: false,
+      reason: "",
+      alumniReadOnly: false,
+      alumniReason: "",
+    };
+
+    const elements = {
+      pageTitle: document.getElementById("pageTitle"),
+      courseTabBtn: document.getElementById("courseTabBtn"),
+      adviseeTabBtn: document.getElementById("adviseeTabBtn"),
+      eventTabBtn: document.getElementById("eventTabBtn"),
+      alumniTabBtn: document.getElementById("alumniTabBtn"),
+      list: document.getElementById("courseList"),
+      form: document.getElementById("courseForm"),
+      listStatus: document.getElementById("listStatus"),
+      editStatus: document.getElementById("editStatus"),
+      bulkStatus: document.getElementById("bulkStatus"),
+      bulkTable: document.getElementById("bulkTable"),
+      searchInput: document.getElementById("searchInput"),
+      categoryFilter: document.getElementById("categoryFilter"),
+      categoryOptions: document.getElementById("categoryOptions"),
+      semesterGrid: document.getElementById("semesterGrid"),
+      saveBtn: document.getElementById("saveBtn"),
+      reloadBtn: document.getElementById("reloadBtn"),
+      bulkModeBtn: document.getElementById("bulkModeBtn"),
+      adminModeStatus: document.getElementById("adminModeStatus"),
+      newBtn: document.getElementById("newBtn"),
+      addRowBtn: document.getElementById("addRowBtn"),
+      deleteBtn: document.getElementById("deleteBtn"),
+      duplicateBtn: document.getElementById("duplicateBtn"),
+      bulkPanel: document.getElementById("bulkPanel"),
+      courseListPanel: document.getElementById("courseListPanel"),
+      courseFormPanel: document.getElementById("courseFormPanel"),
+      adviseePanel: document.getElementById("adviseePanel"),
+      adviseeStatus: document.getElementById("adviseeStatus"),
+      adviseeListStatus: document.getElementById("adviseeListStatus"),
+      adviseeTable: document.getElementById("adviseeTable"),
+      adviseeSearchInput: document.getElementById("adviseeSearchInput"),
+      cohortTabs: document.getElementById("cohortTabs"),
+      adviseeAdvisorOptions: document.getElementById("adviseeAdvisorOptions"),
+      fulltimeAdvisorsInput: document.getElementById("fulltimeAdvisorsInput"),
+      adjunctAdvisorsInput: document.getElementById("adjunctAdvisorsInput"),
+      deleteAdviseeRowsBtn: document.getElementById("deleteAdviseeRowsBtn"),
+      eventsPanel: document.getElementById("eventsPanel"),
+      eventStatus: document.getElementById("eventStatus"),
+      eventListStatus: document.getElementById("eventListStatus"),
+      eventTable: document.getElementById("eventTable"),
+      eventSearchInput: document.getElementById("eventSearchInput"),
+      deleteEventRowsBtn: document.getElementById("deleteEventRowsBtn"),
+      alumniPanel: document.getElementById("alumniPanel"),
+      alumniStatus: document.getElementById("alumniStatus"),
+      alumniListStatus: document.getElementById("alumniListStatus"),
+      alumniSearchStatus: document.getElementById("alumniSearchStatus"),
+      alumniSearchInput: document.getElementById("alumniSearchInput"),
+      alumniTable: document.getElementById("alumniTable"),
+      downloadAlumniBackupBtn: document.getElementById("downloadAlumniBackupBtn"),
+      deleteAlumniRowsBtn: document.getElementById("deleteAlumniRowsBtn"),
+    };
+
+    function setStatus(message) {
+      elements.editStatus.textContent = message || "";
+    }
+
+    function renderAdminModeStatus() {
+      if (adminState.readOnly && !adminState.alumniReadOnly) {
+        elements.adminModeStatus.textContent = `課程／學生／活動唯讀: ${adminState.reason || "遠端正式資料同步失敗"}；系友收件可編輯`;
+        return;
+      }
+      elements.adminModeStatus.textContent = adminState.readOnly
+        ? `唯讀模式: ${adminState.reason || "遠端正式資料同步失敗"}`
+        : "遠端正式資料已同步";
+    }
+
+    function applyAdminMode(response) {
+      adminState.readOnly = response.headers.get("X-Admin-Read-Only") === "true";
+      adminState.alumniReadOnly = response.headers.get("X-Alumni-Read-Only") === "true";
+      if (!adminState.readOnly) {
+        adminState.reason = "";
+      }
+      if (!adminState.alumniReadOnly) {
+        adminState.alumniReason = "";
+      }
+      renderAdminModeStatus();
+      updateWriteControls();
+    }
+
+    async function refreshAdminState() {
+      const response = await fetch("/api/admin-state", { cache: "no-store" });
+      const payload = await response.json();
+      if (!response.ok) {
+        throw new Error(payload.error || `HTTP ${response.status}`);
+      }
+      adminState.readOnly = Boolean(payload.readOnly);
+      adminState.reason = payload.reason || "";
+      adminState.alumniReadOnly = Boolean(payload.alumniReadOnly);
+      adminState.alumniReason = payload.alumniReason || "";
+      renderAdminModeStatus();
+      updateWriteControls();
+    }
+
+    function versionHeader(response) {
+      return response.headers.get("ETag") || "";
+    }
+
+    async function readJsonResponse(response) {
+      applyAdminMode(response);
+      const payload = await response.json();
+      if (adminState.readOnly && !adminState.reason) {
+        try {
+          await refreshAdminState();
+        } catch (error) {
+          adminState.reason = error.message;
+          renderAdminModeStatus();
+        }
+      }
+      if (!response.ok && payload.readOnly) {
+        adminState.readOnly = true;
+        adminState.reason = payload.error || adminState.reason;
+        renderAdminModeStatus();
+        updateWriteControls();
+      }
+      if (!response.ok) {
+        throw new Error(payload.error || `HTTP ${response.status}`);
+      }
+      return {
+        payload,
+        versionToken: versionHeader(response),
+      };
+    }
+
+    function ensureVersionToken(versionToken, label) {
+      if (!versionToken) {
+        throw new Error(`${label}缺少版本資訊，請先重新載入最新資料。`);
+      }
+      if (label === "系友收件") {
+        if (adminState.alumniReadOnly) {
+          throw new Error(adminState.alumniReason || "系友收件目前為唯讀模式，無法寫入。");
+        }
+        return;
+      }
+      if (adminState.readOnly) {
+        throw new Error(adminState.reason || "目前為唯讀模式，無法寫入。");
+      }
+    }
+
+    function updateWriteControls() {
+      const currentReadOnly = appState.active === "alumni" ? adminState.alumniReadOnly : adminState.readOnly;
+      const dirty = appState.active === "courses"
+        ? state.dirty
+        : appState.active === "advisees"
+          ? adviseeState.dirty
+          : appState.active === "events"
+            ? eventsState.dirty
+            : alumniState.dirty;
+      elements.saveBtn.disabled = currentReadOnly || !dirty;
+      const isCourses = appState.active === "courses";
+      const isAdvisees = appState.active === "advisees";
+      const isEvents = appState.active === "events";
+      const isAlumni = appState.active === "alumni";
+      elements.newBtn.hidden = isCourses || isAlumni;
+      elements.bulkModeBtn.hidden = true;
+      elements.addRowBtn.disabled = adminState.readOnly || !isCourses;
+      elements.deleteBtn.disabled = adminState.readOnly || !isCourses;
+      elements.duplicateBtn.disabled = adminState.readOnly || !isCourses;
+      elements.deleteAdviseeRowsBtn.disabled = adminState.readOnly || !isAdvisees;
+      elements.deleteEventRowsBtn.disabled = adminState.readOnly || !isEvents;
+      elements.deleteAlumniRowsBtn.disabled = adminState.alumniReadOnly || !isAlumni;
+    }
+
+    function markDirty() {
+      state.dirty = true;
+      if (appState.active === "courses" && !adminState.readOnly) {
+        elements.saveBtn.disabled = false;
+      }
+      setStatus("尚未儲存");
+    }
+
+    function markAdviseeDirty() {
+      adviseeState.dirty = true;
+      if (appState.active === "advisees" && !adminState.readOnly) {
+        elements.saveBtn.disabled = false;
+      }
+      elements.adviseeStatus.textContent = "尚未儲存";
+    }
+
+    function markEventsDirty() {
+      eventsState.dirty = true;
+      if (appState.active === "events" && !adminState.readOnly) {
+        elements.saveBtn.disabled = false;
+      }
+      elements.eventStatus.textContent = "尚未儲存";
+    }
+
+    function markAlumniDirty(objectName) {
+      if (objectName) {
+        alumniState.dirtyObjectNames.add(objectName);
+      }
+      alumniState.dirty = alumniState.dirtyObjectNames.size > 0;
+      if (appState.active === "alumni" && !adminState.alumniReadOnly) {
+        elements.saveBtn.disabled = false;
+      }
+      elements.alumniStatus.textContent = "尚未儲存";
+    }
+
+    function courseCategories() {
+      return [...new Set(state.payload.courses.map((course) => course.category).filter(Boolean))].sort();
+    }
+
+    function refreshCategoryControls() {
+      const categories = courseCategories();
+      const selectedFilter = elements.categoryFilter.value;
+      elements.categoryFilter.innerHTML = '<option value="">全部類別</option>' + categories.map((category) => (
+        `<option value="${escapeHtml(category)}">${escapeHtml(category)}</option>`
+      )).join("");
+      elements.categoryFilter.value = selectedFilter;
+      elements.categoryOptions.innerHTML = categories.map((category) => (
+        `<option value="${escapeHtml(category)}"></option>`
+      )).join("");
+    }
+
+    function escapeHtml(value) {
+      return String(value || "").replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        "\"": "&quot;",
+        "'": "&#39;",
+      }[char]));
+    }
+
+    function filteredCourses() {
+      const query = elements.searchInput.value.trim().toLowerCase();
+      const category = elements.categoryFilter.value;
+      return sortCoursesForDisplay(state.payload.courses.filter((course) => {
+        const matchCategory = !category || course.category === category;
+        const haystack = [course.cname, course.cname_en, course.offer_by, course.category, course.skill].join(" ").toLowerCase();
+        return matchCategory && (!query || haystack.includes(query));
+      }));
+    }
+
+    function sortCoursesForDisplay(courses) {
+      return [...courses].sort((a, b) => {
+        const statusA = statusRank(a.active);
+        const statusB = statusRank(b.active);
+        if (statusA !== statusB) return statusA - statusB;
+        const categoryA = categoryRank(a.category);
+        const categoryB = categoryRank(b.category);
+        if (categoryA !== categoryB) return categoryA - categoryB;
+        const periodA = periodRank(displayPeriod(a));
+        const periodB = periodRank(displayPeriod(b));
+        if (periodA !== periodB) return periodA - periodB;
+        const semesterA = firstOfferingRank(a);
+        const semesterB = firstOfferingRank(b);
+        if (semesterA !== semesterB) return semesterA - semesterB;
+        return Number(a.sequence || 0) - Number(b.sequence || 0);
+      });
+    }
+
+    function categoryRank(category) {
+      const value = category || "";
+      const orderedCategories = [
+        ["必選", "必修"],
+        ["必選修-方法"],
+        ["必選修-實務"],
+        ["理論/方法"],
+        ["媒體公民意識"],
+        ["國際視野"],
+        ["數位知能"],
+        ["專業實作"],
+      ];
+      const index = orderedCategories.findIndex((aliases) => aliases.includes(value));
+      return index === -1 ? orderedCategories.length : index;
+    }
+
+    function periodRank(period) {
+      if (period === "每年") return 0;
+      if (period === "隔年") return 1;
+      return 2;
+    }
+
+    function firstOfferingRank(course) {
+      const offerings = course.offerings || {};
+      const semesters = state.payload.semesters || [];
+      const firstIndex = semesters.findIndex((semester) => offerings[semester]);
+      return firstIndex === -1 ? Number.POSITIVE_INFINITY : firstIndex;
+    }
+
+    function statusRank(status) {
+      if (status === "unable") return 2;
+      if (status === "no_recent_offering") return 1;
+      return 0;
+    }
+
+    function statusLabel(status) {
+      if (status === "unable") return "不可選";
+      if (status === "no_recent_offering") return "近三年未開";
+      return "";
+    }
+
+    function periodToActive(period) {
+      if (period === "停開 / 不可選") return "unable";
+      if (period === "近三年未開") return "no_recent_offering";
+      return "";
+    }
+
+    function displayPeriod(course) {
+      if (course.active === "unable") return "停開 / 不可選";
+      if (course.active === "no_recent_offering") return "近三年未開";
+      return course.period || "";
+    }
+
+    function periodSelectOptions(currentValue) {
+      const baseOptions = ["每年", "隔年", "近三年未開", "停開 / 不可選"];
+      const options = currentValue && !baseOptions.includes(currentValue)
+        ? [...baseOptions, currentValue]
+        : baseOptions;
+      return options.map((option) => (
+        `<option value="${escapeHtml(option)}" ${option === currentValue ? "selected" : ""}>${escapeHtml(option)}</option>`
+      )).join("");
+    }
+
+    function normalizeCourseOrder() {
+      state.payload.courses = sortCoursesForDisplay(state.payload.courses).map((course, index) => ({
+        ...course,
+        sequence: index + 1,
+      }));
+    }
+
+    function setViewMode(mode) {
+      if (appState.active !== "courses") return;
+      elements.bulkPanel.hidden = false;
+      elements.courseListPanel.hidden = true;
+      elements.courseFormPanel.hidden = true;
+      elements.bulkModeBtn.hidden = true;
+      elements.reloadBtn.hidden = true;
+      elements.newBtn.hidden = true;
+      document.body.dataset.mode = "bulk";
+      renderBulkTable();
+    }
+
+    function setActiveDataset(dataset) {
+      if (dataset === appState.active) return;
+      if (state.dirty || adviseeState.dirty || eventsState.dirty || alumniState.dirty) {
+        if (!confirm("目前變更尚未儲存，確定切換？")) return;
+      }
+      appState.active = dataset;
+      const isCourses = dataset === "courses";
+      const isAdvisees = dataset === "advisees";
+      const isEvents = dataset === "events";
+      const isAlumni = dataset === "alumni";
+      elements.pageTitle.textContent = isCourses ? "課程資料管理" : isAdvisees ? "指導學生管理" : isEvents ? "常態活動管理" : "系友收件管理";
+      elements.courseTabBtn.setAttribute("aria-selected", isCourses ? "true" : "false");
+      elements.adviseeTabBtn.setAttribute("aria-selected", isAdvisees ? "true" : "false");
+      elements.eventTabBtn.setAttribute("aria-selected", isEvents ? "true" : "false");
+      elements.alumniTabBtn.setAttribute("aria-selected", isAlumni ? "true" : "false");
+      elements.bulkPanel.hidden = !isCourses;
+      elements.courseListPanel.hidden = true;
+      elements.courseFormPanel.hidden = true;
+      elements.adviseePanel.hidden = !isAdvisees;
+      elements.eventsPanel.hidden = !isEvents;
+      elements.alumniPanel.hidden = !isAlumni;
+      elements.reloadBtn.hidden = isCourses;
+      elements.bulkModeBtn.hidden = true;
+      elements.newBtn.hidden = isCourses || isAlumni;
+      elements.newBtn.textContent = isAdvisees ? "新增學生" : isEvents ? "新增活動" : "新增課程";
+      elements.saveBtn.textContent = isAlumni ? "儲存收件" : "儲存 JSON";
+      updateWriteControls();
+      document.body.dataset.mode = isCourses ? "bulk" : isAdvisees ? "advisees" : isEvents ? "events" : "alumni";
+      if (isCourses) {
+        renderBulkTable();
+        setStatus(state.payload ? `已載入 ${new Date(state.payload.updatedAt).toLocaleString()}` : "");
+      } else if (isAdvisees && !adviseeState.payload) {
+        loadAdviseesPayload().catch((error) => {
+          elements.adviseeStatus.textContent = `載入失敗：${error.message}`;
+        });
+      } else if (isAdvisees) {
+        renderAdviseeEditor();
+      } else if (isEvents && !eventsState.payload) {
+        loadEventsPayload().catch((error) => {
+          elements.eventStatus.textContent = `載入失敗：${error.message}`;
+        });
+      } else if (isEvents) {
+        renderEventsEditor();
+      } else if (isAlumni && !alumniState.payload) {
+        loadAlumniPayload().catch((error) => {
+          elements.alumniStatus.textContent = `載入失敗：${error.message}`;
+        });
+      } else if (isAlumni) {
+        renderAlumniTable();
+      }
+    }
+
+    function getCourseById(id) {
+      return state.payload.courses.find((course) => course.id === id) || null;
+    }
+
+    function renderBulkTable() {
+      const courses = filteredCourses();
+      elements.bulkStatus.textContent = `${courses.length} 列可直接編輯；勾選學期代表該學期開課`;
+      const semesterHeads = state.payload.semesters.map((semester) => `<th>${escapeHtml(semester)}</th>`).join("");
+      const rows = courses.map((course) => {
+        const currentPeriod = displayPeriod(course);
+        const semesterCells = state.payload.semesters.map((semester) => `
+          <td>
+            <input type="checkbox" data-semester="${escapeHtml(semester)}" ${course.offerings && course.offerings[semester] ? "checked" : ""} aria-label="${escapeHtml(course.cname)} ${escapeHtml(semester)}">
+          </td>
+        `).join("");
+
+        return `
+          <tr data-id="${escapeHtml(course.id)}" data-selected="${course.id === state.selectedId}" data-inactive="${course.active === "unable"}" data-stale="${course.active === "no_recent_offering"}">
+            <td><input class="field-name name-field" data-field="cname" value="${escapeHtml(course.cname)}"></td>
+            <td><input class="field-en" data-field="cname_en" value="${escapeHtml(course.cname_en)}"></td>
+            <td><input class="field-teacher" data-field="offer_by" value="${escapeHtml(course.offer_by)}"></td>
+            <td><input class="field-category" data-field="category" list="categoryOptions" value="${escapeHtml(course.category)}"></td>
+            <td><input class="field-credit" type="number" data-field="credit" min="0" step="1" value="${escapeHtml(course.credit)}"></td>
+            <td><input class="field-last" data-field="last" value="${escapeHtml(course.last)}"></td>
+            <td>
+              <select class="field-period" data-field="period">
+                ${periodSelectOptions(currentPeriod)}
+              </select>
+            </td>
+            <td><input class="field-skill" data-field="skill" value="${escapeHtml(course.skill)}"></td>
+            ${semesterCells}
+            <td><input class="field-description" data-field="description" value="${escapeHtml(course.description)}"></td>
+          </tr>
+        `;
+      }).join("");
+
+      elements.bulkTable.innerHTML = `
+        <thead>
+          <tr>
+            <th>中文課名</th>
+            <th>英文課名</th>
+            <th>授課教師</th>
+            <th>課程類別</th>
+            <th>學分</th>
+            <th>最近開課</th>
+            <th>週期</th>
+            <th>技能</th>
+            ${semesterHeads}
+            <th>描述</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      `;
+    }
+
+    function updateCourseFromTable(control) {
+      const row = control.closest("tr[data-id]");
+      if (!row) return;
+      const course = getCourseById(row.dataset.id);
+      if (!course) return;
+
+      if (control.dataset.field) {
+        const field = control.dataset.field;
+        if (field === "credit") {
+          course[field] = Number(control.value || 0);
+        } else if (field === "period") {
+          course.active = periodToActive(control.value.trim());
+          course.period = course.active ? "" : control.value.trim();
+        } else {
+          course[field] = control.value.trim();
+        }
+      }
+
+      if (control.dataset.semester) {
+        course.offerings = course.offerings || {};
+        course.offerings[control.dataset.semester] = control.checked;
+      }
+
+      state.selectedId = course.id;
+      if (control.dataset.field === "period") {
+        normalizeCourseOrder();
+      }
+      markDirty();
+      renderList();
+      fillForm(course);
+      if (control.dataset.field === "period") {
+        renderBulkTable();
+      } else {
+        row.dataset.inactive = course.active === "unable" ? "true" : "false";
+        row.dataset.stale = course.active === "no_recent_offering" ? "true" : "false";
+        elements.bulkTable.querySelectorAll("tr[data-selected]").forEach((tableRow) => {
+          tableRow.dataset.selected = tableRow.dataset.id === course.id ? "true" : "false";
+        });
+      }
+    }
+
+    function syncBulkTableToState() {
+      if (elements.bulkPanel.hidden) return;
+
+      elements.bulkTable.querySelectorAll("tbody tr[data-id]").forEach((row) => {
+        const course = getCourseById(row.dataset.id);
+        if (!course) return;
+
+        row.querySelectorAll("[data-field]").forEach((control) => {
+          const field = control.dataset.field;
+          if (field === "credit") {
+            course[field] = Number(control.value || 0);
+          } else if (field === "period") {
+            course.active = periodToActive(control.value.trim());
+            course.period = course.active ? "" : control.value.trim();
+          } else {
+            course[field] = control.value.trim();
+          }
+        });
+
+        course.offerings = course.offerings || {};
+        row.querySelectorAll("input[data-semester]").forEach((checkbox) => {
+          course.offerings[checkbox.dataset.semester] = checkbox.checked;
+        });
+      });
+
+      normalizeCourseOrder();
+    }
+
+    function renderList() {
+      refreshCategoryControls();
+      const courses = filteredCourses();
+      elements.listStatus.textContent = `${state.payload.courses.length} 門課，顯示 ${courses.length} 門`;
+      elements.list.innerHTML = courses.map((course) => {
+        const activeSemesters = state.payload.semesters.filter((semester) => course.offerings && course.offerings[semester]);
+        return `
+          <button type="button" class="course-row ${course.active === "unable" ? "inactive" : ""} ${course.active === "no_recent_offering" ? "stale" : ""}" data-id="${escapeHtml(course.id)}" aria-selected="${course.id === state.selectedId}">
+            <span>
+              <span class="course-name">${escapeHtml(course.cname)}</span>
+              <span class="course-meta">${escapeHtml(course.offer_by || "未填教師")} · ${escapeHtml(course.category || "未分類")}${statusLabel(course.active) ? ` · ${escapeHtml(statusLabel(course.active))}` : ""}</span>
+            </span>
+            <span class="course-meta">${escapeHtml(activeSemesters.join("、") || "未排課")}</span>
+          </button>
+        `;
+      }).join("");
+    }
+
+    function selectedCourse() {
+      return getCourseById(state.selectedId);
+    }
+
+    function renderSemesterGrid(course) {
+      elements.semesterGrid.innerHTML = state.payload.semesters.map((semester) => `
+        <label class="semester-check">
+          <input type="checkbox" name="semester:${escapeHtml(semester)}" ${course.offerings && course.offerings[semester] ? "checked" : ""}>
+          <span>${escapeHtml(semester)}</span>
+        </label>
+      `).join("");
+    }
+
+    function fillForm(course) {
+      if (!course) {
+        elements.form.reset();
+        elements.semesterGrid.innerHTML = "";
+        elements.deleteBtn.disabled = true;
+        elements.duplicateBtn.disabled = true;
+        return;
+      }
+
+      elements.form.elements.credit.value = course.credit || 0;
+      elements.form.elements.cname.value = course.cname || "";
+      elements.form.elements.cname_en.value = course.cname_en || "";
+      elements.form.elements.offer_by.value = course.offer_by || "";
+      elements.form.elements.category.value = course.category || "";
+      elements.form.elements.last.value = course.last || "";
+      elements.form.elements.period.value = displayPeriod(course);
+      elements.form.elements.skill.value = course.skill || "";
+      elements.form.elements.description.value = course.description || "";
+      renderSemesterGrid(course);
+      elements.deleteBtn.disabled = adminState.readOnly;
+      elements.duplicateBtn.disabled = adminState.readOnly;
+    }
+
+    function selectCourse(id) {
+      state.selectedId = id;
+      fillForm(selectedCourse());
+      renderList();
+      renderBulkTable();
+      setStatus("");
+    }
+
+    function collectFormCourse(existing) {
+      const form = elements.form.elements;
+      const sequence = existing ? Number(existing.sequence || state.payload.courses.length + 1) : state.payload.courses.length + 1;
+      const offerings = {};
+      state.payload.semesters.forEach((semester) => {
+        offerings[semester] = Boolean(form[`semester:${semester}`] && form[`semester:${semester}`].checked);
+      });
+
+      return {
+        id: existing && existing.id ? existing.id : `course-${Date.now()}`,
+        sequence,
+        cname: form.cname.value.trim(),
+        cname_en: form.cname_en.value.trim(),
+        offer_by: form.offer_by.value.trim(),
+        category: form.category.value.trim(),
+        credit: Number(form.credit.value || 0),
+        last: form.last.value.trim(),
+        period: periodToActive(form.period.value.trim()) ? "" : form.period.value.trim(),
+        active: periodToActive(form.period.value.trim()),
+        info: existing ? existing.info || "" : "",
+        skill: form.skill.value.trim(),
+        description: form.description.value.trim(),
+        offerings,
+      };
+    }
+
+    function splitAdvisorInput(value) {
+      return String(value || "")
+        .replace(/，|、/g, ",")
+        .split(/\n|,/)
+        .map((item) => item.trim())
+        .filter(Boolean);
+    }
+
+    function syncAdvisorInputsToState() {
+      if (!adviseeState.payload) return;
+      adviseeState.payload.advisors = {
+        fulltime: splitAdvisorInput(elements.fulltimeAdvisorsInput.value),
+        adjunct: splitAdvisorInput(elements.adjunctAdvisorsInput.value),
+      };
+    }
+
+    function getAdviseeStudents() {
+      return adviseeState.payload && Array.isArray(adviseeState.payload.students)
+        ? adviseeState.payload.students
+        : [];
+    }
+
+    function cohortRank(value) {
+      const number = Number(value);
+      return Number.isFinite(number) ? number : Number.NEGATIVE_INFINITY;
+    }
+
+    function adviseeCohorts() {
+      return [...new Set(getAdviseeStudents().map((student) => String(student.cohort || "").trim()).filter(Boolean))]
+        .sort((a, b) => {
+          const rank = cohortRank(b) - cohortRank(a);
+          return rank || b.localeCompare(a, "zh-Hant");
+        });
+    }
+
+    function thesisKind(thesisType) {
+      const value = String(thesisType || "").trim();
+      if (value === "研究組") return "research";
+      if (value.includes("影像")) return "image";
+      if (value.includes("多媒體")) return "multimedia";
+      if (value.includes("專業組")) return "professional";
+      return "default";
+    }
+
+    function thesisTypeOptions(currentValue) {
+      const baseOptions = ["", "研究組", "專業組", "專業組(影像)", "專業組(多媒體)"];
+      const values = new Set(baseOptions);
+      getAdviseeStudents().forEach((student) => {
+        if (student.thesisType) values.add(student.thesisType);
+      });
+      if (currentValue) values.add(currentValue);
+      return [...values].map((value) => (
+        `<option value="${escapeHtml(value)}" ${value === currentValue ? "selected" : ""}>${escapeHtml(value || "未填")}</option>`
+      )).join("");
+    }
+
+    function renderAdviseeAdvisorOptions() {
+      const advisors = adviseeState.payload && adviseeState.payload.advisors ? adviseeState.payload.advisors : {};
+      const values = new Set();
+      [...(advisors.fulltime || []), ...(advisors.adjunct || [])].forEach((advisor) => {
+        if (advisor) values.add(advisor);
+      });
+      getAdviseeStudents().forEach((student) => {
+        const value = String(student.advisor || "").trim();
+        if (!value) return;
+        values.add(value);
+        value.split(/、|,|，/).map((name) => name.trim()).filter(Boolean).forEach((name) => values.add(name));
+      });
+      elements.adviseeAdvisorOptions.innerHTML = [...values]
+        .sort((a, b) => a.localeCompare(b, "zh-Hant"))
+        .map((advisor) => `<option value="${escapeHtml(advisor)}"></option>`)
+        .join("");
+    }
+
+    function inferAdviseeStatuses(student) {
+      const advisor = String(student.advisor || "").trim();
+      const thesisTitle = String(student.thesisTitle || "").trim();
+      if (!advisor) {
+        student.advised = false;
+        student.proposal = false;
+        student.final = false;
+        return;
+      }
+      const final = Boolean(thesisTitle && thesisTitle !== "在學中" && thesisTitle !== "休學");
+      if (final) {
+        student.advised = true;
+        student.proposal = true;
+        student.final = true;
+      } else {
+        student.final = false;
+        if (student.advised == null) {
+          student.advised = true;
+        }
+        if (student.proposal == null) {
+          student.proposal = false;
+        }
+      }
+    }
+
+    function filteredAdvisees() {
+      const query = elements.adviseeSearchInput.value.trim().toLowerCase();
+      const selectedCohort = adviseeState.selectedCohort;
+      return getAdviseeStudents().filter((student) => {
+        const matchCohort = !selectedCohort || String(student.cohort || "").trim() === selectedCohort;
+        if (!matchCohort) return false;
+        if (!query) return true;
+        return [
+        student.cohort,
+        student.admissionYear,
+        student.name,
+        student.thesisType,
+        student.advisor,
+        student.thesisTitle,
+        student.advised ? "Advised" : "",
+        student.proposal ? "Proposal" : "",
+        student.final ? "Final" : "",
+        student.job,
+        student.workType,
+        student.url,
+        ].join(" ").toLowerCase().includes(query);
+      });
+    }
+
+    function renderCohortTabs() {
+      const cohorts = adviseeCohorts();
+      if (adviseeState.selectedCohort && !cohorts.includes(adviseeState.selectedCohort)) {
+        adviseeState.selectedCohort = "";
+      }
+      const buttons = [
+        `<button type="button" class="cohort-tab" data-cohort="" aria-selected="${adviseeState.selectedCohort === ""}">全部</button>`,
+        ...cohorts.map((cohort) => (
+          `<button type="button" class="cohort-tab" data-cohort="${escapeHtml(cohort)}" aria-selected="${adviseeState.selectedCohort === cohort}">${escapeHtml(cohort)}屆</button>`
+        )),
+      ];
+      elements.cohortTabs.innerHTML = buttons.join("");
+    }
+
+    function renderAdvisorInputs() {
+      const advisors = adviseeState.payload && adviseeState.payload.advisors ? adviseeState.payload.advisors : {};
+      elements.fulltimeAdvisorsInput.value = Array.isArray(advisors.fulltime) ? advisors.fulltime.join("\n") : "";
+      elements.adjunctAdvisorsInput.value = Array.isArray(advisors.adjunct) ? advisors.adjunct.join("\n") : "";
+    }
+
+    function renderAdviseeEditor() {
+      if (!adviseeState.payload) return;
+      renderAdvisorInputs();
+      renderCohortTabs();
+      renderAdviseeAdvisorOptions();
+      renderAdviseeTable();
+      elements.adviseeStatus.textContent = `已載入 ${new Date(adviseeState.payload.updatedAt).toLocaleString()}`;
+    }
+
+    function renderAdviseeTable() {
+      const students = filteredAdvisees();
+      const total = getAdviseeStudents().length;
+      const cohortText = adviseeState.selectedCohort ? `，${adviseeState.selectedCohort}屆` : "";
+      elements.adviseeListStatus.textContent = `${total} 位學生${cohortText}，顯示 ${students.length} 位`;
+      const rows = students.map((student) => `
+        <tr data-id="${escapeHtml(student.id)}" data-thesis-kind="${escapeHtml(thesisKind(student.thesisType))}">
+          <td><input type="checkbox" data-delete-row aria-label="刪除 ${escapeHtml(student.name)}"></td>
+          <td><input class="field-cohort" data-field="cohort" value="${escapeHtml(student.cohort)}"></td>
+          <td><input class="field-admission-year" data-field="admissionYear" value="${escapeHtml(student.admissionYear)}"></td>
+          <td><input class="field-name" data-field="name" value="${escapeHtml(student.name)}"></td>
+          <td>
+            <select class="field-thesis-type" data-field="thesisType">
+              ${thesisTypeOptions(student.thesisType || "")}
+            </select>
+          </td>
+          <td><input class="field-advisor" data-field="advisor" list="adviseeAdvisorOptions" value="${escapeHtml(student.advisor)}"></td>
+          <td><input class="field-thesis-title" data-field="thesisTitle" value="${escapeHtml(student.thesisTitle)}"></td>
+          <td><input class="status-check" type="checkbox" data-status-field="advised" ${student.advised ? "checked" : ""} aria-label="${escapeHtml(student.name)} Advised"></td>
+          <td><input class="status-check" type="checkbox" data-status-field="proposal" ${student.proposal ? "checked" : ""} aria-label="${escapeHtml(student.name)} Proposal"></td>
+          <td><input class="status-check" type="checkbox" data-status-field="final" ${student.final ? "checked" : ""} aria-label="${escapeHtml(student.name)} Final"></td>
+          <td><input class="field-job" data-field="job" value="${escapeHtml(student.job)}"></td>
+          <td><input class="field-work-type" data-field="workType" value="${escapeHtml(student.workType)}"></td>
+          <td><input class="field-url" data-field="url" value="${escapeHtml(student.url)}"></td>
+        </tr>
+      `).join("");
+
+      elements.adviseeTable.innerHTML = `
+        <thead>
+          <tr>
+            <th>刪除</th>
+            <th>屆次</th>
+            <th>入學年度</th>
+            <th>學生姓名</th>
+            <th>論文類型</th>
+            <th>指導老師</th>
+            <th>論文題目</th>
+            <th>Advised</th>
+            <th>Proposal</th>
+            <th>Final</th>
+            <th>工作</th>
+            <th>類型</th>
+            <th>url</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      `;
+    }
+
+    function getAdviseeById(id) {
+      return getAdviseeStudents().find((student) => student.id === id) || null;
+    }
+
+    function updateAdviseeFromTable(control) {
+      const row = control.closest("tr[data-id]");
+      if (!row || !control.dataset.field) return;
+      const student = getAdviseeById(row.dataset.id);
+      if (!student) return;
+      student[control.dataset.field] = control.value.trim();
+      if (control.dataset.field === "advisor" || control.dataset.field === "thesisTitle") {
+        inferAdviseeStatuses(student);
+        const advised = row.querySelector('[data-status-field="advised"]');
+        const proposal = row.querySelector('[data-status-field="proposal"]');
+        const final = row.querySelector('[data-status-field="final"]');
+        if (advised) advised.checked = Boolean(student.advised);
+        if (proposal) proposal.checked = Boolean(student.proposal);
+        if (final) final.checked = Boolean(student.final);
+      }
+      markAdviseeDirty();
+      if (control.dataset.field === "cohort") {
+        renderCohortTabs();
+        if (adviseeState.selectedCohort) {
+          renderAdviseeTable();
+        }
+      }
+      if (control.dataset.field === "thesisType") {
+        row.dataset.thesisKind = thesisKind(student.thesisType);
+      }
+    }
+
+    function syncAdviseeTableToState() {
+      if (!adviseeState.payload) return;
+      syncAdvisorInputsToState();
+      elements.adviseeTable.querySelectorAll("tbody tr[data-id]").forEach((row) => {
+        const student = getAdviseeById(row.dataset.id);
+        if (!student) return;
+        row.querySelectorAll("[data-field]").forEach((control) => {
+          student[control.dataset.field] = control.value.trim();
+        });
+        row.querySelectorAll("[data-status-field]").forEach((control) => {
+          student[control.dataset.statusField] = control.checked;
+        });
+        inferAdviseeStatuses(student);
+      });
+    }
+
+    function nextAdviseeId() {
+      const maxNumber = Math.max(0, ...getAdviseeStudents().map((student) => {
+        const match = String(student.id || "").match(/advisee-(\d+)/);
+        return match ? Number(match[1]) : 0;
+      }));
+      return `advisee-${String(maxNumber + 1).padStart(3, "0")}`;
+    }
+
+    function addAdviseeRow() {
+      if (!adviseeState.payload) return;
+      syncAdviseeTableToState();
+      adviseeState.payload.students.push({
+        id: nextAdviseeId(),
+        cohort: adviseeState.selectedCohort || "",
+        admissionYear: "",
+        name: "新學生",
+        thesisType: "",
+        advisor: "",
+        thesisTitle: "在學中",
+        advised: false,
+        proposal: false,
+        final: false,
+        job: "",
+        workType: "",
+        url: "",
+      });
+      markAdviseeDirty();
+      renderCohortTabs();
+      renderAdviseeTable();
+    }
+
+    function deleteCheckedAdvisees() {
+      if (!adviseeState.payload) return;
+      const checkedIds = [...elements.adviseeTable.querySelectorAll("input[data-delete-row]:checked")]
+        .map((checkbox) => checkbox.closest("tr[data-id]").dataset.id);
+      if (!checkedIds.length) {
+        elements.adviseeStatus.textContent = "請先勾選要刪除的列";
+        return;
+      }
+      if (!confirm(`刪除 ${checkedIds.length} 位學生？`)) return;
+      adviseeState.payload.students = getAdviseeStudents().filter((student) => !checkedIds.includes(student.id));
+      markAdviseeDirty();
+      renderCohortTabs();
+      renderAdviseeTable();
+    }
+
+    function getRegularEvents() {
+      return eventsState.payload && Array.isArray(eventsState.payload.events)
+        ? eventsState.payload.events
+        : [];
+    }
+
+    function getRegularEventById(id) {
+      return getRegularEvents().find((event) => event.id === id) || null;
+    }
+
+    function regularEventSearchFields(event) {
+      return [
+        event.name,
+        event.category,
+        event.month,
+        event.due,
+        event.description,
+        event.link,
+        event.related,
+      ].join(" ").toLowerCase();
+    }
+
+    function filteredRegularEvents() {
+      const query = elements.eventSearchInput.value.trim().toLowerCase();
+      const events = getRegularEvents();
+      const filtered = !query
+        ? events
+        : events.filter((event) => regularEventSearchFields(event).includes(query));
+      return [...filtered].sort((a, b) => {
+        const monthDiff = (Number.parseInt(a.month, 10) || 0) - (Number.parseInt(b.month, 10) || 0);
+        if (monthDiff !== 0) return monthDiff;
+        return String(a.name || "").localeCompare(String(b.name || ""), "zh-Hant");
+      });
+    }
+
+    function renderEventTable() {
+      const events = filteredRegularEvents();
+      const total = getRegularEvents().length;
+      elements.eventListStatus.textContent = `${total} 筆活動，顯示 ${events.length} 筆`;
+      const rows = events.map((event) => `
+        <tr data-id="${escapeHtml(event.id)}" data-selected="${event.id === eventsState.selectedId}">
+          <td><input type="checkbox" data-delete-row aria-label="刪除 ${escapeHtml(event.name)}"></td>
+          <td><input class="field-name" data-field="name" value="${escapeHtml(event.name)}"></td>
+          <td><input class="field-category" data-field="category" value="${escapeHtml(event.category)}"></td>
+          <td><input class="field-month" type="number" min="1" max="12" step="1" data-field="month" value="${escapeHtml(event.month)}"></td>
+          <td><input class="field-due" data-field="due" value="${escapeHtml(event.due)}"></td>
+          <td><textarea class="field-description" data-field="description">${escapeHtml(event.description)}</textarea></td>
+          <td><input class="field-link" data-field="link" value="${escapeHtml(event.link)}"></td>
+          <td><input class="field-related" data-field="related" value="${escapeHtml(event.related || "")}"></td>
+        </tr>
+      `).join("");
+
+      elements.eventTable.innerHTML = `
+        <thead>
+          <tr>
+            <th>刪除</th>
+            <th>活動名稱</th>
+            <th>類別</th>
+            <th>月份</th>
+          <th>參考截止日期</th>
+          <th>說明</th>
+          <th>活動超連結</th>
+          <th>相關資料</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    `;
+    }
+
+    function renderEventsEditor() {
+      if (!eventsState.payload) return;
+      renderEventTable();
+      elements.eventStatus.textContent = `已載入 ${new Date(eventsState.payload.updatedAt).toLocaleString()}`;
+    }
+
+    function nextRegularEventId() {
+      const maxNumber = Math.max(0, ...getRegularEvents().map((event) => {
+        const match = String(event.id || "").match(/regular-event-(\d+)/);
+        return match ? Number(match[1]) : 0;
+      }));
+      return `regular-event-${String(maxNumber + 1).padStart(3, "0")}`;
+    }
+
+    function syncEventTableToState() {
+      if (!eventsState.payload) return;
+      elements.eventTable.querySelectorAll("tbody tr[data-id]").forEach((row) => {
+        const event = getRegularEventById(row.dataset.id);
+        if (!event) return;
+        row.querySelectorAll("[data-field]").forEach((control) => {
+          event[control.dataset.field] = control.value.trim();
+        });
+      });
+    }
+
+    function updateEventFromTable(control) {
+      const row = control.closest("tr[data-id]");
+      if (!row) return;
+      const event = getRegularEventById(row.dataset.id);
+      if (!event) return;
+
+      const field = control.dataset.field;
+      if (!field) return;
+      event[field] = control.value.trim();
+      eventsState.selectedId = event.id;
+      markEventsDirty();
+      elements.eventTable.querySelectorAll("tr[data-selected]").forEach((tableRow) => {
+        tableRow.dataset.selected = tableRow.dataset.id === row.dataset.id ? "true" : "false";
+      });
+    }
+
+    function addEventRow() {
+      if (!eventsState.payload) return;
+      syncEventTableToState();
+      const event = {
+        id: nextRegularEventId(),
+        name: "新活動",
+        category: "",
+        month: "",
+        due: "",
+        description: "",
+        link: "",
+      };
+      eventsState.payload.events.push(event);
+      eventsState.selectedId = event.id;
+      markEventsDirty();
+      renderEventTable();
+    }
+
+    function deleteCheckedEvents() {
+      if (!eventsState.payload) return;
+      const checkedIds = [...elements.eventTable.querySelectorAll("input[data-delete-row]:checked")]
+        .map((checkbox) => checkbox.closest("tr[data-id]").dataset.id);
+      if (!checkedIds.length) {
+        elements.eventStatus.textContent = "請先勾選要刪除的列";
+        return;
+      }
+      if (!confirm(`刪除 ${checkedIds.length} 筆活動？`)) return;
+      eventsState.payload.events = getRegularEvents().filter((event) => !checkedIds.includes(event.id));
+      eventsState.selectedId = getRegularEvents()[0] ? getRegularEvents()[0].id : null;
+      markEventsDirty();
+      renderEventTable();
+    }
+
+    function getAlumniSubmissions() {
+      return alumniState.payload && Array.isArray(alumniState.payload.submissions)
+        ? alumniState.payload.submissions
+        : [];
+    }
+
+    function getAlumniByObjectName(objectName) {
+      return getAlumniSubmissions().find((record) => record.objectName === objectName) || null;
+    }
+
+    function splitTagInput(value) {
+      return String(value || "")
+        .replace(/，|、/g, ",")
+        .split(/\n|,/)
+        .map((item) => item.trim())
+        .filter(Boolean);
+    }
+
+    function alumniDisplayText(value) {
+      if (Array.isArray(value)) return value.filter(Boolean).join("、");
+      if (typeof value === "boolean") return value ? "是" : "否";
+      return String(value || "").trim();
+    }
+
+    function alumniStatusOptions(currentValue) {
+      const baseOptions = ["new", "reviewing", "contacted", "processed", "archived"];
+      const options = currentValue && !baseOptions.includes(currentValue)
+        ? [...baseOptions, currentValue]
+        : baseOptions;
+      return options.map((option) => (
+        `<option value="${escapeHtml(option)}" ${option === currentValue ? "selected" : ""}>${escapeHtml(option)}</option>`
+      )).join("");
+    }
+
+    function alumniEmploymentStatusOptions(currentValue) {
+      const baseOptions = ["", "全職在職", "獨立記者／獨立接案", "創業中", "繼續升學", "職涯轉換中", "暫時休息"];
+      const options = currentValue && !baseOptions.includes(currentValue)
+        ? [...baseOptions, currentValue]
+        : baseOptions;
+      return options.map((option) => (
+        `<option value="${escapeHtml(option)}" ${option === currentValue ? "selected" : ""}>${escapeHtml(option || "未填")}</option>`
+      )).join("");
+    }
+
+    function alumniCountryOptions(currentValue) {
+      const baseOptions = ["", "台灣", "美國", "日本", "英國", "新加坡", "馬來西亞", "其他"];
+      const options = currentValue && !baseOptions.includes(currentValue)
+        ? [...baseOptions, currentValue]
+        : baseOptions;
+      return options.map((option) => (
+        `<option value="${escapeHtml(option)}" ${option === currentValue ? "selected" : ""}>${escapeHtml(option || "未填")}</option>`
+      )).join("");
+    }
+
+    function alumniContactPreferenceOptions(currentValue) {
+      const baseOptions = ["", "Email", "LINE", "電話"];
+      const options = currentValue && !baseOptions.includes(currentValue)
+        ? [...baseOptions, currentValue]
+        : baseOptions;
+      return options.map((option) => (
+        `<option value="${escapeHtml(option)}" ${option === currentValue ? "selected" : ""}>${escapeHtml(option || "未填")}</option>`
+      )).join("");
+    }
+
+    function alumniAuthorizationText(fields) {
+      const authorizations = [
+        ["非公開分享：學弟妹來信詢問職涯", "學弟妹來信詢問職涯"],
+        ["非公開分享：所友主動請所辦媒合時", "所友主動請所辦媒合時"],
+        ["非公開分享：所上活動邀請（週年返校、座談）", "所上活動邀請"],
+        ["非公開分享：系所募款或捐款相關聯繫", "募款／捐款聯繫"],
+        ["公開分享：預定按入學所級列出姓名", "按入學所級列出姓名"],
+        ["公開分享：預定畢業所級與姓名", "畢業所級與姓名"],
+        ["公開分享：公司", "公司"],
+        ["公開分享：職稱", "職稱"],
+        ["公開分享：E-mail", "E-mail"],
+        ["公開分享：Line ID", "Line ID"],
+        ["公開分享：LinkedIn", "LinkedIn"],
+        ["公開分享：電話", "電話"],
+      ];
+      const active = authorizations
+        .filter(([key]) => Boolean(fields[key]))
+        .map(([_key, label]) => label);
+      if (fields["同意更新提醒"]) active.push("更新提醒");
+      return [...new Set(active)].join("、");
+    }
+
+    function alumniReadonlyField(value, className) {
+      const text = alumniDisplayText(value);
+      return `<input class="${className}" value="${escapeHtml(text)}" title="${escapeHtml(text)}" readonly>`;
+    }
+
+    function alumniSearchText(record) {
+      const fields = record.fields || {};
+      const tags = Array.isArray(record.adminTags) ? record.adminTags.join(" ") : String(record.adminTags || "");
+      return [
+        record.submissionId,
+        record.status,
+        record.adminNote,
+        tags,
+        fields["姓名"],
+        fields.Email,
+        fields["服務單位"],
+        fields["現職職稱"],
+        fields["目前狀態"],
+        fields["還在聯絡的所友"],
+        alumniDisplayText(fields["能提供的資源"]),
+        alumniDisplayText(fields["希望獲得的資源"]),
+      ].join(" ").toLowerCase();
+    }
+
+    function filteredAlumniSubmissions() {
+      const query = elements.alumniSearchInput.value.trim().toLowerCase();
+      const records = getAlumniSubmissions();
+      const filtered = !query ? records : records.filter((record) => alumniSearchText(record).includes(query));
+      return [...filtered].sort((a, b) => String(b.submittedAt || "").localeCompare(String(a.submittedAt || "")));
+    }
+
+    function updateAlumniListStatus(visibleCount = filteredAlumniSubmissions().length) {
+      const total = getAlumniSubmissions().length;
+      const dirtyCount = alumniState.dirtyObjectNames.size;
+      elements.alumniListStatus.textContent = `${total} 筆收件，顯示 ${visibleCount} 筆${dirtyCount ? `，待儲存 ${dirtyCount} 筆` : ""}`;
+      elements.alumniSearchStatus.textContent = visibleCount ? "" : "沒有符合條件的收件";
+    }
+
+    function renderAlumniTable() {
+      if (!alumniState.payload) return;
+      const records = filteredAlumniSubmissions();
+      updateAlumniListStatus(records.length);
+      const rows = records.map((record) => {
+        const fields = record.fields || {};
+        const tags = Array.isArray(record.adminTags) ? record.adminTags.join(", ") : String(record.adminTags || "");
+        const dirty = alumniState.dirtyObjectNames.has(record.objectName);
+        return `
+          <tr data-object-name="${escapeHtml(record.objectName)}" data-dirty="${dirty ? "true" : "false"}">
+            <td><input type="checkbox" data-delete-row aria-label="刪除 ${escapeHtml(fields["姓名"] || record.objectName)}"></td>
+            <td>${alumniReadonlyField(record.submittedAt ? new Date(record.submittedAt).toLocaleString() : "", "field-submitted-at")}</td>
+            <td>
+              <select class="field-status" data-field="status">
+                ${alumniStatusOptions(record.status || "new")}
+              </select>
+            </td>
+            <td><input class="field-tags" data-field="adminTags" value="${escapeHtml(tags)}" placeholder="new, hot, follow-up"></td>
+            <td><input class="field-note" data-field="adminNote" value="${escapeHtml(record.adminNote || "")}" placeholder="內部備註、聯繫紀錄"></td>
+            <td>${alumniReadonlyField(fields["姓名"], "field-name")}</td>
+            <td>${alumniReadonlyField(fields.Email, "field-email")}</td>
+            <td>
+              <select class="field-employment-status" data-field="目前狀態">
+                ${alumniEmploymentStatusOptions(fields["目前狀態"] || "")}
+              </select>
+            </td>
+            <td>${alumniReadonlyField(fields["現職職稱"], "field-title")}</td>
+            <td>${alumniReadonlyField(fields["服務單位"], "field-company")}</td>
+            <td>${alumniReadonlyField(fields["主要跑線"], "field-track")}</td>
+            <td>${alumniReadonlyField(fields["所在城市"], "field-city")}</td>
+            <td>
+              <select class="field-country-select" data-field="所在國家 / 地區">
+                ${alumniCountryOptions(fields["所在國家 / 地區"] || "")}
+              </select>
+            </td>
+            <td>${alumniReadonlyField(fields["所在行業"], "field-industry")}</td>
+            <td>${alumniReadonlyField(fields["能提供的資源"], "field-provide")}</td>
+            <td>${alumniReadonlyField(fields["希望獲得的資源"], "field-need")}</td>
+            <td>${alumniReadonlyField(fields["希望系上提供"], "field-department")}</td>
+            <td>${alumniReadonlyField(fields["還在聯絡的所友"], "field-network")}</td>
+            <td>${alumniReadonlyField(fields["手機號碼"], "field-phone")}</td>
+            <td>${alumniReadonlyField(fields["Line ID"], "field-line")}</td>
+            <td>
+              <select class="field-contact-select" data-field="偏好聯絡方式">
+                ${alumniContactPreferenceOptions(fields["偏好聯絡方式"] || "")}
+              </select>
+            </td>
+            <td>${alumniReadonlyField(alumniAuthorizationText(fields), "field-authorization")}</td>
+            <td>${alumniReadonlyField(fields["給系上的話"], "field-message")}</td>
+          </tr>
+        `;
+      }).join("");
+
+      elements.alumniTable.innerHTML = `
+        <thead>
+          <tr>
+            <th>刪除</th>
+            <th>提交時間</th>
+            <th>狀態</th>
+            <th>標籤</th>
+            <th>備註</th>
+            <th>姓名</th>
+            <th>Email</th>
+            <th>目前狀態</th>
+            <th>現職職稱</th>
+            <th>服務單位</th>
+            <th>主要跑線</th>
+            <th>所在城市</th>
+            <th>所在國家／地區</th>
+            <th>所在行業</th>
+            <th>能提供的資源</th>
+            <th>希望獲得的資源</th>
+            <th>希望系上提供</th>
+            <th>還在聯絡的所友</th>
+            <th>手機</th>
+            <th>Line ID</th>
+            <th>偏好聯絡方式</th>
+            <th>授權</th>
+            <th>給系上的話</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      `;
+    }
+
+    function collectAlumniRecordFromRow(row, existing) {
+      const record = existing ? JSON.parse(JSON.stringify(existing)) : {};
+      record.fields = record.fields && typeof record.fields === "object" ? record.fields : {};
+      row.querySelectorAll("[data-field]").forEach((control) => {
+        const field = control.dataset.field;
+        if (field === "status") {
+          record.status = control.value.trim() || "new";
+        } else if (field === "adminTags") {
+          record.adminTags = splitTagInput(control.value);
+        } else if (field === "adminNote") {
+          record.adminNote = control.value.trim();
+        } else {
+          record.fields[field] = control.value.trim();
+        }
+      });
+      record.adminUpdatedAt = new Date().toISOString();
+      return record;
+    }
+
+    function syncAlumniTableToState() {
+      if (!alumniState.payload) return;
+      elements.alumniTable.querySelectorAll("tbody tr[data-object-name]").forEach((row) => {
+        const record = getAlumniByObjectName(row.dataset.objectName);
+        if (!record) return;
+        const next = collectAlumniRecordFromRow(row, record);
+        const index = getAlumniSubmissions().findIndex((item) => item.objectName === record.objectName);
+        if (index !== -1) {
+          alumniState.payload.submissions[index] = next;
+        }
+      });
+    }
+
+    function updateAlumniFromTable(control) {
+      const row = control.closest("tr[data-object-name]");
+      if (!row) return;
+      const record = getAlumniByObjectName(row.dataset.objectName);
+      if (!record) return;
+      const next = collectAlumniRecordFromRow(row, record);
+      const index = getAlumniSubmissions().findIndex((item) => item.objectName === record.objectName);
+      if (index !== -1) {
+        alumniState.payload.submissions[index] = next;
+      }
+      markAlumniDirty(record.objectName);
+      row.dataset.dirty = "true";
+      updateAlumniListStatus(elements.alumniTable.querySelectorAll("tbody tr[data-object-name]").length);
+    }
+
+    async function loadAlumniPayload() {
+      const response = await fetch("/api/alumni-submissions", { cache: "no-store" });
+      const result = await readJsonResponse(response);
+      alumniState.payload = result.payload;
+      alumniState.versionToken = result.versionToken;
+      alumniState.dirty = false;
+      alumniState.dirtyObjectNames = new Set();
+      updateWriteControls();
+      renderAlumniTable();
+      elements.alumniStatus.textContent = `已載入 ${new Date(alumniState.payload.updatedAt).toLocaleString()}`;
+    }
+
+    function formatBackupTimestamp(date) {
+      const pad = (value) => String(value).padStart(2, "0");
+      return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}-${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}`;
+    }
+
+    function downloadBlob(filename, content, type) {
+      const blob = new Blob([content], { type });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function downloadAlumniBackup() {
+      if (!alumniState.payload) {
+        elements.alumniStatus.textContent = "目前沒有可備份的系友收件資料";
+        return;
+      }
+      syncAlumniTableToState();
+      const exportedAt = new Date();
+      const backupPayload = {
+        schemaVersion: "alumni-submissions-backup-v1",
+        exportedAt: exportedAt.toISOString(),
+        sourceUpdatedAt: alumniState.payload.updatedAt || null,
+        containsUnsavedLocalEdits: alumniState.dirty,
+        submissionCount: getAlumniSubmissions().length,
+        submissions: getAlumniSubmissions(),
+      };
+      const filename = `alumni-submissions-backup-${formatBackupTimestamp(exportedAt)}.json`;
+      downloadBlob(filename, JSON.stringify(backupPayload, null, 2), "application/json");
+      elements.alumniStatus.textContent = `已下載備份 ${exportedAt.toLocaleString()}`;
+    }
+
+    async function saveAlumniPayload() {
+      syncAlumniTableToState();
+      const dirtyObjectNames = [...alumniState.dirtyObjectNames];
+      if (!dirtyObjectNames.length) {
+        elements.alumniStatus.textContent = "沒有待儲存的收件變更";
+        return;
+      }
+      if (!confirm(`即將覆寫 ${dirtyObjectNames.length} 筆系友收件，確定要繼續？`)) return;
+
+      for (const objectName of dirtyObjectNames) {
+        const current = getAlumniByObjectName(objectName);
+        if (!current) continue;
+        ensureVersionToken(current.versionToken, "系友收件");
+        const response = await fetch(`/api/alumni-submissions/${encodeURIComponent(current.objectName)}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            "If-Match": current.versionToken,
+          },
+          body: JSON.stringify(current),
+        });
+        const result = await readJsonResponse(response);
+        const saved = result.payload;
+        const index = getAlumniSubmissions().findIndex((record) => record.objectName === current.objectName);
+        if (index !== -1) {
+          alumniState.payload.submissions[index] = saved;
+        }
+      }
+
+      alumniState.dirty = false;
+      alumniState.dirtyObjectNames = new Set();
+      updateWriteControls();
+      renderAlumniTable();
+      elements.alumniStatus.textContent = `已儲存 ${new Date().toLocaleString()}`;
+    }
+
+    async function deleteCheckedAlumni() {
+      if (!alumniState.payload) return;
+      const checkedObjectNames = [...elements.alumniTable.querySelectorAll("input[data-delete-row]:checked")]
+        .map((checkbox) => checkbox.closest("tr[data-object-name]")?.dataset.objectName)
+        .filter(Boolean);
+      if (!checkedObjectNames.length) {
+        elements.alumniStatus.textContent = "請先勾選要刪除的收件";
+        return;
+      }
+      if (!confirm(`刪除 ${checkedObjectNames.length} 筆系友收件？`)) return;
+
+      for (const objectName of checkedObjectNames) {
+        const record = getAlumniByObjectName(objectName);
+        if (!record) continue;
+        ensureVersionToken(record.versionToken, "系友收件");
+        const response = await fetch(`/api/alumni-submissions/${encodeURIComponent(objectName)}`, {
+          method: "DELETE",
+          headers: {
+            "If-Match": record.versionToken,
+          },
+        });
+        await readJsonResponse(response);
+      }
+
+      alumniState.payload.submissions = getAlumniSubmissions().filter((record) => !checkedObjectNames.includes(record.objectName));
+      checkedObjectNames.forEach((objectName) => alumniState.dirtyObjectNames.delete(objectName));
+      alumniState.dirty = alumniState.dirtyObjectNames.size > 0;
+      updateWriteControls();
+      renderAlumniTable();
+      elements.alumniStatus.textContent = `已刪除 ${checkedObjectNames.length} 筆收件`;
+    }
+
+    async function loadEventsPayload() {
+      const response = await fetch("/api/regular-events", { cache: "no-store" });
+      const result = await readJsonResponse(response);
+      eventsState.payload = result.payload;
+      eventsState.versionToken = result.versionToken;
+      eventsState.selectedId = eventsState.payload.events[0] ? eventsState.payload.events[0].id : null;
+      eventsState.dirty = false;
+      updateWriteControls();
+      renderEventsEditor();
+    }
+
+    async function saveEventsPayload() {
+      syncEventTableToState();
+      ensureVersionToken(eventsState.versionToken, "常態活動資料");
+      if (!confirm("即將覆寫線上常態活動資料，確定要繼續？")) return;
+      const response = await fetch("/api/regular-events", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "If-Match": eventsState.versionToken,
+        },
+        body: JSON.stringify(eventsState.payload),
+      });
+      const result = await readJsonResponse(response);
+      eventsState.payload = result.payload;
+      eventsState.versionToken = result.versionToken;
+      eventsState.dirty = false;
+      updateWriteControls();
+      renderEventsEditor();
+      elements.eventStatus.textContent = `已儲存 ${new Date(result.payload.updatedAt).toLocaleString()}`;
+    }
+
+    async function loadAdviseesPayload() {
+      const response = await fetch("/api/advisees", { cache: "no-store" });
+      const result = await readJsonResponse(response);
+      adviseeState.payload = result.payload;
+      adviseeState.versionToken = result.versionToken;
+      adviseeState.dirty = false;
+      updateWriteControls();
+      renderAdviseeEditor();
+    }
+
+    async function saveAdviseesPayload() {
+      syncAdviseeTableToState();
+      ensureVersionToken(adviseeState.versionToken, "指導學生資料");
+      if (!confirm("即將覆寫線上指導學生資料，確定要繼續？")) return;
+      const response = await fetch("/api/advisees", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "If-Match": adviseeState.versionToken,
+        },
+        body: JSON.stringify(adviseeState.payload),
+      });
+      const result = await readJsonResponse(response);
+      adviseeState.payload = result.payload;
+      adviseeState.versionToken = result.versionToken;
+      adviseeState.dirty = false;
+      updateWriteControls();
+      renderAdviseeEditor();
+      elements.adviseeStatus.textContent = `已儲存 ${new Date(result.payload.updatedAt).toLocaleString()}`;
+    }
+
+    async function loadPayload() {
+      const response = await fetch("/api/courses", { cache: "no-store" });
+      const result = await readJsonResponse(response);
+      state.payload = result.payload;
+      state.versionToken = result.versionToken;
+      state.selectedId = state.payload.courses[0] ? state.payload.courses[0].id : null;
+      state.dirty = false;
+      elements.bulkPanel.hidden = false;
+      elements.courseListPanel.hidden = true;
+      elements.courseFormPanel.hidden = true;
+      elements.reloadBtn.hidden = true;
+      elements.bulkModeBtn.hidden = true;
+      elements.newBtn.hidden = true;
+      document.body.dataset.mode = "bulk";
+      updateWriteControls();
+      renderList();
+      renderBulkTable();
+      fillForm(selectedCourse());
+      setStatus(`已載入 ${new Date(state.payload.updatedAt).toLocaleString()}`);
+    }
+
+    async function savePayload() {
+      ensureVersionToken(state.versionToken, "課程資料");
+      if (!confirm("即將覆寫線上課程資料，確定要繼續？")) return;
+      const response = await fetch("/api/courses", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "If-Match": state.versionToken,
+        },
+        body: JSON.stringify(state.payload),
+      });
+      const result = await readJsonResponse(response);
+      state.payload = result.payload;
+      state.versionToken = result.versionToken;
+      state.dirty = false;
+      updateWriteControls();
+      renderList();
+      renderBulkTable();
+      fillForm(selectedCourse());
+      setStatus(`已儲存 ${new Date(result.payload.updatedAt).toLocaleString()}`);
+    }
+
+    elements.list.addEventListener("click", (event) => {
+      const row = event.target.closest(".course-row");
+      if (row) {
+        selectCourse(row.dataset.id);
+      }
+    });
+
+    elements.form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const existing = selectedCourse();
+      const nextCourse = collectFormCourse(existing);
+      if (!nextCourse.cname) {
+        setStatus("中文課名不可空白");
+        return;
+      }
+      if (existing) {
+        const index = state.payload.courses.findIndex((course) => course.id === existing.id);
+        state.payload.courses[index] = nextCourse;
+      } else {
+        state.payload.courses.push(nextCourse);
+        state.selectedId = nextCourse.id;
+      }
+      normalizeCourseOrder();
+      markDirty();
+      renderList();
+      renderBulkTable();
+      fillForm(selectedCourse());
+    });
+
+    function addCourseRow() {
+      const sequence = Math.max(0, ...state.payload.courses.map((course) => Number(course.sequence || 0))) + 1;
+      const offerings = Object.fromEntries(state.payload.semesters.map((semester) => [semester, false]));
+      const course = {
+        id: `course-${Date.now()}`,
+        sequence,
+        cname: "新課程",
+        cname_en: "",
+        offer_by: "",
+        category: "",
+        credit: 3,
+        last: "",
+        period: "",
+        active: "",
+        info: "",
+        skill: "",
+        description: "",
+        offerings,
+      };
+      state.payload.courses.push(course);
+      state.selectedId = course.id;
+      normalizeCourseOrder();
+      markDirty();
+      renderList();
+      renderBulkTable();
+      fillForm(course);
+    }
+
+    elements.newBtn.addEventListener("click", () => {
+      if (appState.active === "advisees") {
+        addAdviseeRow();
+      } else if (appState.active === "events") {
+        addEventRow();
+      } else {
+        addCourseRow();
+      }
+    });
+
+    elements.addRowBtn.addEventListener("click", addCourseRow);
+
+    elements.duplicateBtn.addEventListener("click", () => {
+      const current = selectedCourse();
+      if (!current) return;
+      const copy = JSON.parse(JSON.stringify(current));
+      copy.id = `course-${Date.now()}`;
+      copy.sequence = Math.max(0, ...state.payload.courses.map((course) => Number(course.sequence || 0))) + 1;
+      copy.cname = `${copy.cname}（副本）`;
+      state.payload.courses.push(copy);
+      state.selectedId = copy.id;
+      normalizeCourseOrder();
+      markDirty();
+      renderList();
+      renderBulkTable();
+      fillForm(copy);
+    });
+
+    elements.deleteBtn.addEventListener("click", () => {
+      const current = selectedCourse();
+      if (!current) return;
+      if (!confirm(`刪除「${current.cname}」？`)) return;
+      state.payload.courses = state.payload.courses.filter((course) => course.id !== current.id);
+      state.selectedId = state.payload.courses[0] ? state.payload.courses[0].id : null;
+      normalizeCourseOrder();
+      markDirty();
+      renderList();
+      renderBulkTable();
+      fillForm(selectedCourse());
+    });
+
+    elements.bulkTable.addEventListener("focusin", (event) => {
+      const row = event.target.closest("tr[data-id]");
+      if (!row) return;
+      state.selectedId = row.dataset.id;
+      fillForm(selectedCourse());
+      renderList();
+      elements.bulkTable.querySelectorAll("tr[data-selected]").forEach((tableRow) => {
+        tableRow.dataset.selected = tableRow.dataset.id === row.dataset.id ? "true" : "false";
+      });
+    });
+
+    elements.bulkTable.addEventListener("input", (event) => {
+      if (event.target.matches("input, textarea")) {
+        updateCourseFromTable(event.target);
+      }
+    });
+
+    elements.bulkTable.addEventListener("change", (event) => {
+      if (event.target.matches("select, input[type='checkbox']")) {
+        updateCourseFromTable(event.target);
+      }
+    });
+
+    elements.saveBtn.addEventListener("click", () => {
+      if (appState.active === "advisees") {
+        saveAdviseesPayload().catch((error) => {
+          elements.adviseeStatus.textContent = `儲存失敗：${error.message}`;
+        });
+        return;
+      }
+      if (appState.active === "events") {
+        saveEventsPayload().catch((error) => {
+          elements.eventStatus.textContent = `儲存失敗：${error.message}`;
+        });
+        return;
+      }
+      if (appState.active === "alumni") {
+        saveAlumniPayload().catch((error) => {
+          elements.alumniStatus.textContent = `儲存失敗：${error.message}`;
+        });
+        return;
+      }
+      syncBulkTableToState();
+      savePayload().catch((error) => setStatus(`儲存失敗：${error.message}`));
+    });
+
+    elements.reloadBtn.addEventListener("click", () => {
+      if (appState.active === "advisees") {
+        if (adviseeState.dirty && !confirm("目前變更尚未儲存，確定重新載入？")) return;
+        loadAdviseesPayload().catch((error) => {
+          elements.adviseeStatus.textContent = `載入失敗：${error.message}`;
+        });
+        return;
+      }
+      if (appState.active === "events") {
+        if (eventsState.dirty && !confirm("目前變更尚未儲存，確定重新載入？")) return;
+        loadEventsPayload().catch((error) => {
+          elements.eventStatus.textContent = `載入失敗：${error.message}`;
+        });
+        return;
+      }
+      if (appState.active === "alumni") {
+        if (alumniState.dirty && !confirm("目前變更尚未儲存，確定重新載入？")) return;
+        loadAlumniPayload().catch((error) => {
+          elements.alumniStatus.textContent = `載入失敗：${error.message}`;
+        });
+        return;
+      }
+      if (state.dirty && !confirm("目前變更尚未儲存，確定重新載入？")) return;
+      loadPayload().catch((error) => setStatus(`載入失敗：${error.message}`));
+    });
+
+    elements.bulkModeBtn.addEventListener("click", () => {
+      setViewMode(elements.bulkPanel.hidden ? "bulk" : "detail");
+    });
+
+    elements.searchInput.addEventListener("input", () => {
+      renderList();
+      renderBulkTable();
+    });
+    elements.categoryFilter.addEventListener("change", () => {
+      renderList();
+      renderBulkTable();
+    });
+    function selectDatasetFromTab(dataset) {
+      setActiveDataset(dataset);
+      if (appState.active !== dataset) return;
+      const url = new URL(window.location.href);
+      url.searchParams.set("section", dataset);
+      history.replaceState({}, "", url);
+    }
+
+    elements.courseTabBtn.addEventListener("click", () => selectDatasetFromTab("courses"));
+    elements.adviseeTabBtn.addEventListener("click", () => selectDatasetFromTab("advisees"));
+    elements.eventTabBtn.addEventListener("click", () => selectDatasetFromTab("events"));
+    elements.alumniTabBtn.addEventListener("click", () => selectDatasetFromTab("alumni"));
+    elements.adviseeSearchInput.addEventListener("input", renderAdviseeTable);
+    elements.cohortTabs.addEventListener("click", (event) => {
+      const button = event.target.closest("button[data-cohort]");
+      if (!button) return;
+      adviseeState.selectedCohort = button.dataset.cohort || "";
+      renderCohortTabs();
+      renderAdviseeTable();
+    });
+    elements.adviseeTable.addEventListener("input", (event) => {
+      if (event.target.matches("input[data-field]")) {
+        updateAdviseeFromTable(event.target);
+      }
+    });
+    elements.adviseeTable.addEventListener("change", (event) => {
+      if (event.target.matches("select[data-field]")) {
+        updateAdviseeFromTable(event.target);
+        return;
+      }
+      if (!event.target.matches("input[data-status-field]")) return;
+      const row = event.target.closest("tr[data-id]");
+      const student = row ? getAdviseeById(row.dataset.id) : null;
+      if (!student) return;
+      student[event.target.dataset.statusField] = event.target.checked;
+      inferAdviseeStatuses(student);
+      row.querySelectorAll("[data-status-field]").forEach((checkbox) => {
+        checkbox.checked = Boolean(student[checkbox.dataset.statusField]);
+      });
+      markAdviseeDirty();
+    });
+    elements.eventSearchInput.addEventListener("input", renderEventTable);
+    elements.eventTable.addEventListener("input", (event) => {
+      if (event.target.matches("input[data-field], textarea[data-field]")) {
+        updateEventFromTable(event.target);
+      }
+    });
+    elements.eventTable.addEventListener("change", (event) => {
+      if (event.target.matches("input[data-field], textarea[data-field]")) {
+        updateEventFromTable(event.target);
+      }
+    });
+    elements.eventTable.addEventListener("focusin", (event) => {
+      const row = event.target.closest("tr[data-id]");
+      if (!row) return;
+      eventsState.selectedId = row.dataset.id;
+      elements.eventTable.querySelectorAll("tr[data-selected]").forEach((tableRow) => {
+        tableRow.dataset.selected = tableRow.dataset.id === row.dataset.id ? "true" : "false";
+      });
+    });
+    elements.alumniSearchInput.addEventListener("input", renderAlumniTable);
+    elements.alumniTable.addEventListener("input", (event) => {
+      if (event.target.matches("input[data-field], textarea[data-field]")) {
+        updateAlumniFromTable(event.target);
+      }
+    });
+    elements.alumniTable.addEventListener("change", (event) => {
+      if (event.target.matches("select[data-field], input[data-field], textarea[data-field]")) {
+        updateAlumniFromTable(event.target);
+      }
+    });
+    elements.fulltimeAdvisorsInput.addEventListener("input", markAdviseeDirty);
+    elements.adjunctAdvisorsInput.addEventListener("input", markAdviseeDirty);
+    elements.deleteAdviseeRowsBtn.addEventListener("click", deleteCheckedAdvisees);
+    elements.deleteEventRowsBtn.addEventListener("click", deleteCheckedEvents);
+    elements.downloadAlumniBackupBtn.addEventListener("click", downloadAlumniBackup);
+    elements.deleteAlumniRowsBtn.addEventListener("click", () => {
+      deleteCheckedAlumni().catch((error) => {
+        elements.alumniStatus.textContent = `刪除失敗：${error.message}`;
+      });
+    });
+    window.addEventListener("beforeunload", (event) => {
+      if (!state.dirty && !adviseeState.dirty && !eventsState.dirty && !alumniState.dirty) return;
+      event.preventDefault();
+      event.returnValue = "";
+    });
+
+    refreshAdminState()
+      .catch((error) => {
+        adminState.readOnly = true;
+        adminState.reason = error.message;
+        renderAdminModeStatus();
+        updateWriteControls();
+      })
+      .finally(() => {
+        loadPayload()
+          .then(() => {
+            const requested = new URLSearchParams(window.location.search).get("section");
+            if (["advisees", "events", "alumni"].includes(requested)) {
+              setActiveDataset(requested);
+            }
+          })
+          .catch((error) => setStatus(`載入失敗：${error.message}`));
+      });
+  </script>
+</body>
+</html>

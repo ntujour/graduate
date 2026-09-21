@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>教師資料管理｜台大新聞所</title>
+  <link rel="stylesheet" href="/faculty/assets/site.css"><script defer src="/faculty/assets/admin.js"></script>
+</head>
+<body class="faculty-admin">
+  <header class="admin-header"><div class="header-inner">
+    <div class="title-row"><h1>教師資料管理</h1><nav class="admin-tabs" aria-label="管理資料類型"><a class="admin-tab" href="/?section=courses">課程資料</a><a class="admin-tab" href="/?section=advisees">指導學生</a><a class="admin-tab" href="/?section=events">常態活動</a><a class="admin-tab" href="/?section=alumni">系友收件</a><a class="admin-tab" href="/news-admin/">最新消息</a><a class="admin-tab" href="/faculty/" aria-selected="true">教師管理</a></nav></div>
+    <div class="header-actions"><span id="release-state" class="release-state">讀取版本中</span><a class="button" href="https://graduate-alumni-form-sb2s54rpvq-de.a.run.app/" target="_blank" rel="noopener">系友問卷</a>
+<a class="button" href="https://homepage.ntu.edu.tw/~jour/" target="_blank" rel="noopener">主站首頁</a>
+<a class="button" href="/faculty/preview/" target="_blank" rel="noopener">發布預覽</a><button id="reload" type="button">重新載入</button><button id="publish" type="button" class="primary">發布教師資料</button></div>
+  </div></header>
+  <main class="admin-main">
+    <div id="status" class="status" role="status" aria-live="polite">載入教師資料…</div>
+    <section id="directory-view" class="panel directory-panel" hidden>
+      <div class="panel-head directory-head"><div><div class="panel-title">教師清單</div><p class="panel-note">先檢查各網站呈現狀態與列表資料，再點選教師進入完整編輯。</p></div><div class="summary-chips" aria-label="教師資料摘要"><span class="summary-chip"><strong id="total-count">0</strong> 筆資料</span><span class="summary-chip"><strong id="zh-count">0</strong> 中文主站</span><span class="summary-chip"><strong id="en-count">0</strong> 英文站</span></div></div>
+      <div class="search-row">
+        <label class="compact-field"><span class="sr-only">搜尋教師</span><input id="search" type="search" placeholder="搜尋姓名、職稱、專長或聯絡資料"></label>
+        <label class="compact-field"><span class="sr-only">篩選類別</span><select id="category-filter"><option value="">所有教師類別</option></select></label>
+        <label class="compact-field"><span class="sr-only">篩選英文站狀態</span><select id="english-filter"><option value="">所有英文站狀態</option><option value="visible">英文站顯示</option><option value="hidden">英文站不顯示</option></select></label>
+        <button id="create-faculty" type="button" class="primary">新增教師</button>
+      </div>
+      <div class="table-wrap"><table class="faculty-table"><thead><tr><th scope="col" class="order-column">排序</th><th scope="col">主站列表資料</th><th scope="col">類別與網站狀態</th><th scope="col">專長／研究領域</th><th scope="col">聯絡資料</th><th scope="col" class="action-column"><span class="sr-only">操作</span></th></tr></thead><tbody id="faculty-rows"></tbody></table><p id="empty-result" class="empty-result" hidden>沒有符合條件的教師資料。</p></div>
+    </section>
+    <section id="editor-view" class="panel editor-panel" hidden>
+      <div class="panel-head editor-head"><div><button id="back-to-list" type="button" class="text-button">← 返回教師清單</button><div class="editor-identity"><img id="editor-photo" alt="" src=""><div><div id="editor-name" class="panel-title">教師資料</div><div id="editor-meta" class="panel-note"></div></div></div></div><div class="editor-statuses"><span id="editor-zh-status" class="site-badge"></span><span id="editor-en-status" class="site-badge"></span></div></div>
+      <form id="faculty-form">
+        <div class="form-section"><div class="section-heading"><div><h2>中英文共用資料</h2><p>照片與聯絡資料會供兩個語言版本使用。</p></div></div><div class="fields shared-fields">
+          <label><span>網址識別碼</span><input id="record-id" type="text" required pattern="[a-z0-9][a-z0-9-]{0,79}" aria-describedby="record-id-help" autocomplete="off"><small id="record-id-help">儲存後不可修改；只能使用小寫英文、數字與連字號。</small></label><label><span>教師類別</span><select id="category" required><option value="fulltime">專任教師</option><option value="parttime">兼任教師</option><option value="practical">實務教師</option><option value="former_practical">歷任實務教師</option><option value="honorary">名譽教授</option><option value="retired">退休教師</option><option value="joint">合聘教師</option></select><small>「歷任實務教師」適用於已不再授課、但並非退休的人員。</small></label><label><span>列表排序</span><input id="order" type="number" min="1" step="1" required></label><label><span>Email</span><input id="email" type="email"></label><label><span>電話</span><input id="phone"></label><label><span>研究室</span><input id="office"></label><label><span>個人網站</span><input id="website" type="url"></label><label class="wide-field"><span>目前照片網址</span><input id="photo" type="url"></label><label class="wide-field photo-upload-field"><span>上傳新照片（會取代目前照片）</span><input id="photo-upload" type="file" accept="image/jpeg,image/png,image/webp"><small id="photo-upload-note">JPG、PNG 或 WebP，最大 8 MB；會自動修正方向並縮小過大的照片。</small></label>
+        </div><fieldset class="visibility-fields"><legend>教師分類設定</legend><label><input id="also-retired" type="checkbox"><span>同時列入退休教師</span></label><small>主要類別維持不變；勾選後會另外出現在退休教師分類，「全部」清單仍只顯示一次。</small></fieldset><fieldset class="visibility-fields"><legend>教師頁顯示設定</legend><label><input id="visible-zh" type="checkbox"><span>顯示於中文教師頁</span></label><label><input id="visible-en" type="checkbox"><span>顯示於英文教師頁</span></label><small>取消勾選只會從該語言的公開教師清單隱藏；教師內容、照片與另一語言的設定都會保留。</small></fieldset></div>
+        <div class="form-section localized-section"><div class="section-heading language-heading"><div><h2>語言內容</h2><p>切換語言不會翻譯或覆蓋另一語言。</p></div><div class="language-tabs" role="tablist" aria-label="編輯語言"><button id="language-tab-zh" class="language-tab" type="button" role="tab" data-language="zh" aria-selected="true" aria-controls="language-panel">中文</button><button id="language-tab-en" class="language-tab" type="button" role="tab" data-language="en" aria-selected="false" aria-controls="language-panel" tabindex="-1">English</button></div></div><div id="language-panel" class="language-panel" role="tabpanel" aria-labelledby="language-tab-zh"><div class="fields localized-fields"><label><span>姓名</span><input id="name" required></label><label><span>職稱</span><input id="title"></label><label class="wide-field"><span>專長／研究領域</span><textarea id="expertise" rows="2"></textarea></label></div>
+          <div class="body-heading"><label for="body-editor">完整介紹、學經歷與著作清單</label><span id="body-length" class="body-length"></span></div><div class="editor-toolbar" aria-label="文字格式"><button type="button" data-command="bold">粗體</button><button type="button" data-command="italic">斜體</button><button type="button" data-command="insertUnorderedList">項目清單</button><button type="button" id="insert-link">插入連結</button></div><div id="body-editor" class="editor" contenteditable="true" role="textbox" aria-label="完整介紹與著作清單" aria-multiline="true"></div>
+        </div></div>
+        <div class="form-actions"><button id="save" type="submit" class="primary">儲存草稿</button><button id="preview" type="button">預覽已儲存草稿</button><span class="form-hint">發布會一次更新全部教師的中英文資料。</span></div>
+      </form>
+      <section id="preview-section" class="inline-preview" hidden><div class="panel-head"><div class="panel-title">草稿預覽</div><button id="close-preview" type="button">關閉預覽</button></div><iframe id="preview-frame" title="教師草稿預覽" sandbox="allow-scripts allow-same-origin"></iframe></section>
+    </section>
+    <p class="pilot-note">儲存只更新草稿；按下「發布教師資料」後，勾選的名單才會更新至中文與英文教師頁。</p>
+  </main>
+</body></html>

@@ -1,0 +1,87 @@
+{
+  "skill_name": "graduate-data-canonicalization",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Please sync the latest course info from the Google Sheet into `data/courses.json`. Keep `source` as the canonical JSON and preserve the upstream sheet in `importSource`.",
+      "expected_output": "An updated canonical courses JSON or a blocked report if the schema or consumer mapping is inconsistent.",
+      "assertions": [
+        {
+          "text": "Names `data/courses.json` as the canonical target and keeps the Google Sheet as import-only source.",
+          "type": "contains"
+        },
+        {
+          "text": "Mentions both `source` and `importSource` semantics instead of collapsing them into one field.",
+          "type": "contains"
+        },
+        {
+          "text": "Checks downstream consumers such as `courses-data.js` or `courseplan.html` before claiming success.",
+          "type": "contains"
+        },
+        {
+          "text": "Returns a blocked report instead of inventing course content when the source or schema is unavailable.",
+          "type": "contains"
+        },
+        {
+          "text": "Treats the canonical JSON as the write target even when the upstream sheet is the import source.",
+          "type": "contains"
+        }
+      ],
+      "files": [
+        "data/courses.json",
+        "build_courses_json.py",
+        "courses-data.js",
+        "courseplan.html"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Update the advisee data from the Word export and make sure the public pages still read the canonical JSON rather than the import file.",
+      "expected_output": "An updated `data/advisees.json` or a blocked report explaining the mismatch, plus confirmation that the page loaders still align with the canonical file.",
+      "assertions": [
+        {
+          "text": "Identifies `data/advisees.json` as canonical and the Word export as import-only.",
+          "type": "contains"
+        },
+        {
+          "text": "Names the relevant consumers such as `advisees-data.js`, `advisee.html`, or `advisee_faculty.html`.",
+          "type": "contains"
+        },
+        {
+          "text": "Either reports an updated canonical JSON or explains the schema mismatch that blocked the update.",
+          "type": "contains"
+        }
+      ],
+      "files": [
+        "data/advisees.json",
+        "build_advisees_json.py",
+        "advisees-data.js",
+        "advisee.html",
+        "advisee_faculty.html"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "The regular activity data changed in the CSV. Canonicalize it into `data/regular_event.json`, keep the import source separate, and verify the public page still parses the data.",
+      "expected_output": "A canonical regular event JSON update with source/importSource preserved and a verification note that `regular_event.html` still loads the JSON cleanly.",
+      "assertions": [
+        {
+          "text": "Names `data/regular_event.json` as the canonical output and the CSV as import-only.",
+          "type": "contains"
+        },
+        {
+          "text": "Preserves the boundary between `source` and `importSource`.",
+          "type": "contains"
+        },
+        {
+          "text": "Verifies `regular_event.html` or an equivalent consumer still parses the JSON cleanly.",
+          "type": "contains"
+        }
+      ],
+      "files": [
+        "data/regular_event.json",
+        "regular_event.html"
+      ]
+    }
+  ]
+}

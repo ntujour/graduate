@@ -1,0 +1,2 @@
+.news-admin .directory-panel { overflow: hidden; }
+.news-admin .table-wrap { min-width: 0; width: 100%; max-width: 100%; overflow-x: auto; }

@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>消息與活動管理｜台大新聞所</title>
+  <link rel="stylesheet" href="/faculty/assets/site.css"><link rel="stylesheet" href="/news-admin/assets/news.css"><link rel="stylesheet" href="/news-admin/assets/mobile-fix.css">
+  <script defer src="/news-admin/assets/admin.js"></script>
+</head>
+<body class="faculty-admin news-admin">
+  <header class="admin-header"><div class="header-inner">
+    <div class="title-row"><h1>消息與活動管理</h1><nav class="admin-tabs" aria-label="管理資料類型"><a class="admin-tab" href="/?section=courses">課程資料</a><a class="admin-tab" href="/?section=advisees">指導學生</a><a class="admin-tab" href="/?section=events">常態活動</a><a class="admin-tab" href="/?section=alumni">系友收件</a><a class="admin-tab" href="/news-admin/" aria-selected="true">消息與活動</a><a class="admin-tab" href="/faculty/">教師管理</a></nav></div>
+    <div class="header-actions"><span id="release-state" class="release-state">讀取版本中</span><a class="button" href="https://homepage.ntu.edu.tw/~jour/" target="_blank" rel="noopener">主站首頁</a><button id="reload" type="button">重新載入</button><button id="publish" type="button" class="primary">發布 JSON</button></div>
+  </div></header>
+  <main class="admin-main">
+    <div id="status" class="status" role="status" aria-live="polite">載入消息資料…</div>
+    <section id="directory-view" class="panel directory-panel" hidden>
+      <div class="panel-head directory-head"><div><div class="panel-title">消息與活動清單</div><p class="panel-note">草稿可反覆儲存；按「發布 JSON」後，最新消息與活動資訊才會一起切換。</p></div><div class="summary-chips"><span class="summary-chip"><strong id="total-count">0</strong> 筆草稿</span><span class="summary-chip"><strong id="zh-count">0</strong> 中文發布</span><span class="summary-chip"><strong id="en-count">0</strong> 英文發布</span><button id="add" type="button" class="primary">新增資料</button></div></div>
+      <div class="search-row"><label class="compact-field"><span class="sr-only">搜尋消息或活動</span><input id="search" type="search" placeholder="搜尋日期、標題、標籤或摘要"></label><label class="compact-field"><span class="sr-only">資料類型</span><select id="collection-filter"><option value="">所有資料類型</option><option value="news">最新消息</option><option value="activities">活動資訊</option></select></label><label class="compact-field"><span class="sr-only">語言狀態</span><select id="language-filter"><option value="">所有發布狀態</option><option value="zh">中文發布</option><option value="en">英文發布</option><option value="draft">兩站皆未發布</option></select></label></div>
+      <div class="table-wrap"><table class="faculty-table news-table"><thead><tr><th>日期／類型</th><th>圖片</th><th>中文內容</th><th>English</th><th>狀態</th><th><span class="sr-only">操作</span></th></tr></thead><tbody id="news-rows"></tbody></table><p id="empty-result" class="empty-result" hidden>沒有符合條件的資料。</p></div>
+    </section>
+    <section id="editor-view" class="panel editor-panel" hidden>
+      <div class="panel-head editor-head"><div><button id="back-to-list" type="button" class="text-button">← 返回清單</button><div id="editor-name" class="panel-title">內容</div><div id="editor-id" class="panel-note"></div></div><button id="remove" type="button" class="danger-button">刪除這筆草稿</button></div>
+      <form id="news-form">
+        <div class="form-section"><div class="section-heading"><div><h2>共用資料</h2><p>類型、日期、圖片與置頂狀態會供中英文版本共同使用。</p></div></div><div class="fields shared-fields"><label><span>資料類型</span><select id="collection"><option value="news">最新消息</option><option value="activities">活動資訊</option></select></label><label><span>日期</span><input id="date" type="date" required></label><label class="check-field"><input id="pinned" type="checkbox"><span>置頂顯示</span></label><label class="wide-field"><span>圖片網址</span><input id="image" type="text" placeholder="/images/news/...、/images/activities/... 或 https://..."></label><label class="wide-field photo-upload-field"><span>上傳新圖片</span><input id="image-upload" type="file" accept="image/jpeg,image/png,image/webp"><small id="image-upload-note">JPG、PNG 或 WebP，最大 10 MB；上傳後仍需儲存草稿。</small></label></div></div>
+        <div class="form-section localized-section"><div class="section-heading language-heading"><div><h2>語言內容</h2><p>每個語言可獨立決定是否出現在公開網站。</p></div><div class="language-tabs" role="tablist" aria-label="編輯語言"><button id="language-tab-zh" class="language-tab" type="button" role="tab" data-language="zh" aria-selected="true" aria-controls="language-panel">中文</button><button id="language-tab-en" class="language-tab" type="button" role="tab" data-language="en" aria-selected="false" aria-controls="language-panel" tabindex="-1">English</button></div></div>
+          <div id="language-panel" class="language-panel" role="tabpanel" aria-labelledby="language-tab-zh"><div class="fields localized-fields"><label class="check-field"><input id="visible" type="checkbox"><span id="visible-label">發布到中文網站</span></label><div class="tag-field"><label for="tag-input">標籤</label><div id="tag-editor" class="tag-editor"><div id="tag-chips" class="tag-chips"></div><input id="tag-input" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="tag-suggestions" autocomplete="off" placeholder="輸入標籤後按 Enter"><input id="tag" type="hidden"></div><div id="tag-suggestions" class="tag-suggestions" role="listbox" hidden></div><small>輸入後按 Enter 建立標籤；可從既有標籤中選擇。</small></div><label class="wide-field"><span>標題</span><input id="title" required></label><label class="wide-field"><span>列表摘要</span><textarea id="excerpt" rows="3"></textarea></label><label class="wide-field"><span>外部連結（選填）</span><input id="external-url" type="text" placeholder="https://..."></label></div>
+          <div class="body-heading"><label for="body-editor">完整內容</label><span id="body-length" class="body-length"></span></div><div class="editor-toolbar"><button type="button" data-command="bold">粗體</button><button type="button" data-command="italic">斜體</button><button type="button" data-command="insertUnorderedList">項目清單</button><button type="button" id="insert-link">插入連結</button></div><div id="body-editor" class="editor" contenteditable="true" role="textbox" aria-multiline="true"></div>
+        </div></div>
+        <div class="form-actions"><button id="save" type="submit" class="primary">儲存草稿</button><span class="form-hint">只有已勾選發布的語言會進入公開 JSON。</span></div>
+      </form>
+    </section>
+  </main>
+</body></html>

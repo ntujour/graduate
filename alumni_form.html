@@ -1,0 +1,1318 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>台大新聞所系友資料庫</title>
+<style>
+  :root {
+    --ink: #0f172a;
+    --ink-soft: #334155;
+    --paper: #ffffff;
+    --paper-strong: #ffffff;
+    --line: rgba(148, 163, 184, 0.34);
+    --accent: #a34b43;
+    --accent-soft: rgba(163, 75, 67, 0.12);
+    --accent-strong: #8d3f39;
+    --warm: #f8fafc;
+    --success: #2d6c54;
+    --muted: #64748b;
+    --shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+    --radius: 14px;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Noto Sans TC", sans-serif;
+    color: var(--ink);
+    background: linear-gradient(180deg, #f1f5f9 0%, #f8fafc 100%);
+    padding: 24px 14px 40px;
+  }
+
+  .shell {
+    width: min(980px, 100%);
+    margin: 0 auto;
+    display: grid;
+    gap: 16px;
+  }
+
+  .topbar {
+    display: grid;
+    gap: 12px;
+  }
+
+  .masthead,
+  .rail-card,
+  .stage {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    box-shadow: var(--shadow);
+  }
+
+  .masthead {
+    border-radius: 0;
+    padding: 22px 24px;
+  }
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--accent-strong);
+    font-size: 14px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .masthead h1 {
+    font-size: clamp(1.8rem, 3vw, 2.35rem);
+    line-height: 1.18;
+    letter-spacing: 0;
+    margin-bottom: 8px;
+  }
+
+  .masthead p {
+    color: var(--ink-soft);
+    line-height: 1.65;
+    font-size: 14px;
+  }
+
+  .rail-card {
+    border-radius: 0;
+    padding: 14px 16px 16px;
+    display: grid;
+    gap: 12px;
+  }
+
+  .step-nav {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .step-pill {
+    width: 100%;
+    display: block;
+    border: 1px solid var(--line);
+    border-radius: 0;
+    padding: 10px 12px;
+    background: #ffffff;
+    color: var(--ink-soft);
+    text-align: center;
+    font-size: 13px;
+    line-height: 1.5;
+    cursor: pointer;
+    transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
+  }
+
+  .step-pill:hover {
+    border-color: rgba(163, 75, 67, 0.28);
+  }
+
+  .step-pill.active {
+    background: var(--accent-soft);
+    border-color: rgba(163, 75, 67, 0.42);
+    color: var(--accent-strong);
+    font-weight: 600;
+  }
+
+  .step-pill.done {
+    background: #fffaf9;
+  }
+
+  .stage {
+    border-radius: 0;
+    padding: 22px;
+  }
+
+  .page {
+    display: none;
+  }
+
+  .page.active {
+    display: block;
+  }
+
+  .page-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 18px;
+    align-items: end;
+  }
+
+  .page-head h2 {
+    font-size: clamp(1.45rem, 2vw, 1.8rem);
+    line-height: 1.22;
+    margin-bottom: 4px;
+  }
+
+  .page-head p {
+    color: var(--ink-soft);
+    line-height: 1.7;
+    font-size: 14px;
+    max-width: 560px;
+  }
+
+  .page-index {
+    flex-shrink: 0;
+    text-align: right;
+    color: var(--muted);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .hero-strip {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .hero-card {
+    border-radius: 0;
+    padding: 14px;
+    background: #f8fafc;
+    border: 1px solid var(--line);
+  }
+
+  .hero-card strong {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 14px;
+  }
+
+  .hero-card span {
+    display: block;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.6;
+  }
+
+  .section-card {
+    background: var(--paper-strong);
+    border: 1px solid var(--line);
+    border-radius: 0;
+    padding: 18px;
+    margin-bottom: 14px;
+  }
+
+  .section-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 18px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  .section-title span:last-child {
+    letter-spacing: normal;
+    text-transform: none;
+    font-weight: 500;
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .field-grid {
+    display: grid;
+    gap: 16px;
+  }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .field-row {
+    display: grid;
+    gap: 8px;
+  }
+
+  .field-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+
+  .required-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #c84646;
+    flex-shrink: 0;
+  }
+
+  .field-input,
+  .field-select,
+  .field-textarea {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 0;
+    background: #ffffff;
+    color: var(--ink);
+    font-size: 15px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+  }
+
+  .field-input,
+  .field-select {
+    min-height: 44px;
+    padding: 0 12px;
+  }
+
+  .field-textarea {
+    min-height: 122px;
+    padding: 12px;
+    resize: vertical;
+    line-height: 1.7;
+  }
+
+  .field-input:focus,
+  .field-select:focus,
+  .field-textarea:focus {
+    border-color: rgba(15, 110, 150, 0.72);
+    box-shadow: 0 0 0 4px rgba(15, 110, 150, 0.1);
+    background: #ffffff;
+  }
+
+  .hint {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.6;
+  }
+
+  .muted-note {
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  .toggle-group,
+  .choice-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .choice-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px 20px;
+  }
+
+  .toggle-btn,
+  .choice-chip {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    color: var(--ink);
+    transition: color 0.16s ease;
+  }
+
+  .toggle-btn {
+    padding: 8px 12px;
+    font-family: inherit;
+    font-size: 14px;
+    border: 1px solid var(--line);
+    border-radius: 0;
+    background: #ffffff;
+    cursor: pointer;
+  }
+
+  .toggle-btn:hover,
+  .choice-chip:hover {
+    color: var(--accent-strong);
+  }
+
+  .toggle-btn.on,
+  .choice-chip.on {
+    background: var(--accent-soft);
+    border-color: rgba(2, 132, 199, 0.38);
+    color: var(--accent-strong);
+  }
+
+  .choice-chip {
+    padding: 2px 0;
+    line-height: 1.5;
+    cursor: pointer;
+  }
+
+  .choice-chip input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    margin-top: 2px;
+    accent-color: var(--accent);
+    flex-shrink: 0;
+  }
+
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 8px;
+    border-radius: 0;
+    background: #e0f2fe;
+    color: var(--accent-strong);
+    font-size: 12px;
+  }
+
+  .network-box,
+  .share-box {
+    background: #f8fafc;
+    border: 1px solid var(--line);
+    border-radius: 0;
+    padding: 16px;
+    margin-top: 14px;
+  }
+
+  .network-box h3,
+  .share-box h3 {
+    font-size: 15px;
+    margin-bottom: 6px;
+  }
+
+  .network-box p,
+  .share-box p {
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.7;
+    margin-bottom: 12px;
+  }
+
+  .check-stack {
+    display: grid;
+    gap: 12px;
+  }
+
+  .check-row {
+    display: grid;
+    gap: 6px;
+    padding: 12px;
+    border-radius: 0;
+    background: #ffffff;
+    border: 1px solid var(--line);
+  }
+
+  .check-row label {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    line-height: 1.6;
+    cursor: pointer;
+  }
+
+  .check-row input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    margin-top: 2px;
+    accent-color: var(--accent);
+    flex-shrink: 0;
+  }
+
+  .nav-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-top: 26px;
+  }
+
+  .nav-meta {
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  .btn-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .btn {
+    min-height: 42px;
+    padding: 0 18px;
+    border-radius: 0;
+    border: 1px solid var(--line);
+    background: #ffffff;
+    color: var(--ink);
+    font-size: 14px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: opacity 0.16s ease, background 0.16s ease;
+  }
+
+  .btn:hover {
+    background: #f8fafc;
+  }
+
+  .btn-primary {
+    border-color: transparent;
+    background: var(--accent-strong);
+    color: #fff;
+  }
+
+  .btn-primary:hover {
+    opacity: 0.92;
+  }
+
+  .btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .error-msg {
+    color: #b73737;
+    font-size: 13px;
+    margin-top: 10px;
+  }
+
+  .review-stack {
+    display: grid;
+    gap: 14px;
+  }
+
+  .review-readonly .field-input[readonly],
+  .review-readonly .field-select[disabled],
+  .review-readonly .field-textarea[readonly] {
+    background: #fffcf8;
+  }
+
+  .review-readonly .toggle-btn,
+  .review-readonly .choice-chip,
+  .review-readonly .check-row {
+    cursor: default;
+  }
+
+  .review-readonly .off {
+    opacity: 0.42;
+    background: transparent;
+    border-color: rgba(148, 163, 184, 0.18);
+    color: var(--muted);
+  }
+
+  .review-readonly .on {
+    background: var(--accent-soft);
+    border-color: rgba(2, 132, 199, 0.36);
+    color: var(--accent-strong);
+  }
+
+  .review-filled {
+    border-color: rgba(2, 132, 199, 0.38) !important;
+    background: #f0f9ff !important;
+    color: var(--ink) !important;
+  }
+
+  .review-empty-value {
+    color: var(--muted) !important;
+    background: #f8fafc !important;
+  }
+
+  .success-state {
+    text-align: center;
+    padding: 72px 20px;
+  }
+
+  .success-state .mark {
+    width: 84px;
+    height: 84px;
+    margin: 0 auto 18px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: rgba(45, 108, 84, 0.12);
+    color: var(--success);
+    font-size: 42px;
+    font-weight: 700;
+  }
+
+  .success-state h2 {
+    font-family: "Iowan Old Style", "Baskerville", "Noto Serif TC", serif;
+    font-size: 32px;
+    margin-bottom: 10px;
+  }
+
+  .success-state p {
+    max-width: 520px;
+    margin: 0 auto;
+    color: var(--ink-soft);
+    line-height: 1.8;
+    font-size: 15px;
+  }
+
+  @media (max-width: 980px) {
+    .step-nav {
+      grid-template-columns: repeat(5, minmax(120px, 1fr));
+      overflow-x: auto;
+    }
+  }
+
+  @media (max-width: 760px) {
+    body {
+      padding: 16px 10px 28px;
+    }
+
+    .stage {
+      padding: 16px;
+      border-radius: 12px;
+    }
+
+    .masthead,
+    .rail-card {
+      border-radius: 12px;
+      padding: 16px 14px;
+    }
+
+    .hero-strip,
+    .two-col,
+    .choice-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .page-head,
+    .nav-row {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .page-index {
+      text-align: left;
+    }
+
+    .btn-row {
+      width: 100%;
+    }
+
+    .btn {
+      width: 100%;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="shell" id="alumni-form-app">
+  <header class="topbar">
+    <section class="masthead" id="alumni-form-intro">
+      <div class="eyebrow">NTU Journalism Alumni</div>
+      <h1>台大新聞所友資料庫</h1>
+    </section>
+
+    <section class="rail-card">
+      <div class="step-nav" id="alumni-form-steps">
+        <button class="step-pill active" type="button" data-step-nav="0" onclick="goTo(0)">1. 基本資料</button>
+        <button class="step-pill" type="button" data-step-nav="1" onclick="goTo(1)">2. 現況輪廓</button>
+        <button class="step-pill" type="button" data-step-nav="2" onclick="goTo(2)">3. 資源與網絡</button>
+        <button class="step-pill" type="button" data-step-nav="3" onclick="goTo(3)">4. 聯絡與授權</button>
+        <button class="step-pill" type="button" data-step-nav="4" onclick="goTo(4)">5. 最後確認</button>
+      </div>
+    </section>
+  </header>
+
+  <main class="stage">
+    <section class="page active" id="alumni-basic-info-page">
+      <div class="page-head">
+        <div>
+          <h2>先讓資料庫知道你是誰。</h2>
+        </div>
+      </div>
+
+      <div class="section-card alumni-form-section" id="basic-info-section">
+        <div class="section-title">
+          <span>基本資料</span>
+          <span>姓名必填，聯絡方式可選填</span>
+        </div>
+        <div class="field-grid">
+          <div class="field-row">
+            <div class="field-label"><span class="required-dot"></span> 姓名</div>
+            <input class="field-input" id="f_姓名" type="text" placeholder="你的名字">
+          </div>
+          <div class="field-row">
+            <div class="field-label">電子信箱</div>
+            <input class="field-input" id="f_電子信箱" type="email" placeholder="如方便聯絡，可留下常用信箱">
+          </div>
+          <div class="field-row">
+            <div class="field-label">LinkedIn 或個人首頁</div>
+            <input class="field-input" id="f_LinkedIn或個人首頁" type="url" placeholder="linkedin.com/in/yourname 或其他個人網址">
+            <div class="hint">如果你希望別人理解你的工作輪廓，這裡會很有用。</div>
+          </div>
+          <div class="two-col">
+            <div class="field-row">
+              <div class="field-label">手機號碼</div>
+              <input class="field-input" id="f_手機號碼" type="text" placeholder="0912-345-678">
+            </div>
+            <div class="field-row">
+              <div class="field-label">Line ID</div>
+              <input class="field-input" id="f_LineID" type="text" placeholder="yourlineid">
+            </div>
+          </div>
+          <div class="two-col">
+            <div class="field-row">
+              <div class="field-label">偏好聯絡方式</div>
+              <select class="field-select" id="f_偏好聯絡方式">
+                <option value="">請選擇</option>
+                <option>Email</option>
+                <option>LINE</option>
+                <option>電話</option>
+              </select>
+            </div>
+            <div class="field-row">
+              <div class="field-label">補充聯絡方式</div>
+              <input class="field-input" id="f_其他聯絡方式" type="text" placeholder="例如：IG、微信、個人網站">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-row">
+        <div class="nav-meta">第 1 頁，共 5 頁</div>
+        <div class="btn-row">
+          <button class="btn btn-primary" type="button" onclick="goTo(1)">下一步：現況輪廓</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="alumni-current-status-page">
+      <div class="page-head">
+        <div>
+          <h2>再來，描一筆你現在的位置。</h2>
+          <p>不是為了分類你，而是讓系上之後真的知道該怎麼把人和人連起來。</p>
+        </div>
+        <div class="page-index">Step 2 of 5</div>
+      </div>
+
+      <div class="section-card alumni-form-section" id="current-status-section">
+        <div class="section-title">
+          <span>目前狀態</span>
+          <span>可先選最接近的一個</span>
+        </div>
+        <div class="field-grid">
+          <div class="field-row">
+            <div class="field-label">目前狀態</div>
+            <div class="toggle-group" id="g_目前狀態">
+              <button class="toggle-btn on" type="button" onclick="toggleOne(this,'g_目前狀態')">全職在職</button>
+              <button class="toggle-btn" type="button" onclick="toggleOne(this,'g_目前狀態')">獨立記者／獨立接案</button>
+              <button class="toggle-btn" type="button" onclick="toggleOne(this,'g_目前狀態')">創業中</button>
+              <button class="toggle-btn" type="button" onclick="toggleOne(this,'g_目前狀態')">繼續升學</button>
+              <button class="toggle-btn" type="button" onclick="toggleOne(this,'g_目前狀態')">職涯轉換中</button>
+              <button class="toggle-btn" type="button" onclick="toggleOne(this,'g_目前狀態')">暫時休息</button>
+            </div>
+          </div>
+
+          <div class="two-col">
+            <div class="field-row">
+              <div class="field-label">現職職稱</div>
+              <input class="field-input" id="f_現職職稱" type="text" placeholder="例：記者、編輯、研究員、產品經理">
+            </div>
+            <div class="field-row">
+              <div class="field-label">服務單位</div>
+              <input class="field-input" id="f_服務單位" type="text" placeholder="公司、媒體、機構或學校名稱">
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field-label">如果你是記者或公關，主要跑線／負責領域是？</div>
+            <input class="field-input" id="f_主要跑線" type="text" placeholder="例如：政治、社會、財經、科技、品牌、公關、企業溝通">
+          </div>
+
+          <div class="two-col">
+            <div class="field-row">
+              <div class="field-label">所在城市</div>
+              <input class="field-input" id="f_所在城市" type="text" placeholder="例：台北市、東京、新加坡">
+            </div>
+            <div class="field-row">
+              <div class="field-label">所在國家／地區</div>
+              <select class="field-select" id="f_所在國家地區">
+                <option value="">請選擇</option>
+                <option>台灣</option>
+                <option>美國</option>
+                <option>日本</option>
+                <option>英國</option>
+                <option>新加坡</option>
+                <option>馬來西亞</option>
+                <option>其他</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field-label">所在行業 <span class="tag">可複選</span></div>
+            <div class="choice-grid" id="g_所在行業">
+              <label class="choice-chip"><input type="checkbox" value="非營利／社會企業"> 非營利／社會企業</label>
+              <label class="choice-chip"><input type="checkbox" value="政府／公部門"> 政府／公部門</label>
+              <label class="choice-chip"><input type="checkbox" value="政黨／政策／智庫"> 政黨／政策／智庫</label>
+              <label class="choice-chip"><input type="checkbox" value="國際組織／NGO"> 國際組織／NGO</label>
+              <label class="choice-chip"><input type="checkbox" value="學術研究／教育"> 學術研究／教育</label>
+              <label class="choice-chip"><input type="checkbox" value="媒體／傳播"> 媒體／傳播</label>
+              <label class="choice-chip"><input type="checkbox" value="文化／藝術"> 文化／藝術</label>
+              <label class="choice-chip"><input type="checkbox" value="金融／顧問"> 金融／顧問</label>
+              <label class="choice-chip"><input type="checkbox" value="行銷"> 行銷</label>
+              <label class="choice-chip"><input type="checkbox" value="人資"> 人資</label>
+              <label class="choice-chip"><input type="checkbox" value="軟體工程"> 軟體工程</label>
+              <label class="choice-chip"><input type="checkbox" value="硬體工程"> 硬體工程</label>
+              <label class="choice-chip"><input type="checkbox" value="醫療／公衛"> 醫療／公衛</label>
+              <label class="choice-chip"><input type="checkbox" value="法律／社福"> 法律／社福</label>
+            </div>
+            <div class="field-row" style="margin-top:4px">
+              <label class="choice-chip" style="display:flex;align-items:center"><input type="checkbox" id="other-industry-cb"> 其他行業</label>
+              <input class="field-input" id="other-industry-input" type="text" placeholder="請填寫你的行業" style="opacity:0.42;pointer-events:none">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-row">
+        <div class="nav-meta">第 2 頁，共 5 頁</div>
+        <div class="btn-row">
+          <button class="btn" type="button" onclick="goTo(0)">返回基本資料</button>
+          <button class="btn btn-primary" type="button" onclick="goTo(2)">下一步：資源與網絡</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="alumni-resource-page">
+      <div class="page-head">
+        <div>
+          <h2>把你能提供的、需要的，和仍在連結的人脈放在一起。</h2>
+          <p>這一頁是資料庫最有價值的地方。它不是活動報名，而是未來互相找到彼此的基礎。</p>
+        </div>
+        <div class="page-index">Step 3 of 5</div>
+      </div>
+
+      <div class="section-card alumni-form-section" id="resource-link-section">
+        <div class="section-title">
+          <span>我能提供的資源</span>
+          <span>可複選</span>
+        </div>
+        <div class="choice-grid" id="g_能提供的資源">
+          <label class="choice-chip"><input type="checkbox" value="職涯諮詢"> 職涯諮詢（聊聊我的路徑）</label>
+          <label class="choice-chip"><input type="checkbox" value="實習／工作機會轉介"> 實習／工作機會轉介</label>
+          <label class="choice-chip"><input type="checkbox" value="業界人脈引薦"> 業界人脈引薦</label>
+          <label class="choice-chip"><input type="checkbox" value="產學合作"> 產學合作</label>
+          <label class="choice-chip"><input type="checkbox" value="演講／分享"> 演講／分享</label>
+          <label class="choice-chip"><input type="checkbox" value="創業／社會創新建議"> 創業／社會創新建議</label>
+        </div>
+      </div>
+
+      <div class="section-card alumni-form-section">
+        <div class="section-title">
+          <span>我希望獲得的資源</span>
+          <span>可複選</span>
+        </div>
+        <div class="choice-grid" id="g_希望獲得的資源">
+          <label class="choice-chip"><input type="checkbox" value="找工作／實習機會"> 找工作／實習機會</label>
+          <label class="choice-chip"><input type="checkbox" value="業界人脈"> 業界人脈</label>
+          <label class="choice-chip"><input type="checkbox" value="認識同領域系友"> 認識同領域系友</label>
+          <label class="choice-chip"><input type="checkbox" value="只是保持聯繫"> 只是保持聯繫</label>
+        </div>
+      </div>
+
+      <div class="section-card alumni-form-section">
+        <div class="section-title">
+          <span>我希望系上提供什麼</span>
+          <span>可複選</span>
+        </div>
+        <div class="choice-grid" id="g_希望系上提供">
+          <label class="choice-chip"><input type="checkbox" value="定期系友電子報"> 定期系友電子報</label>
+          <label class="choice-chip"><input type="checkbox" value="系友聚會／返校活動"> 系友聚會／返校活動</label>
+          <label class="choice-chip"><input type="checkbox" value="與在校生的交流機會"> 與在校生的交流機會</label>
+          <label class="choice-chip"><input type="checkbox" value="系友間的橫向媒合"> 系友間的橫向媒合</label>
+          <label class="choice-chip"><input type="checkbox" value="職缺轉介平台"> 職缺轉介平台</label>
+          <label class="choice-chip"><input type="checkbox" value="不需要，保持聯絡即可"> 不需要，保持聯絡即可</label>
+        </div>
+
+        <div class="network-box">
+          <h3>你還在聯絡哪些所友？</h3>
+          <p>這一欄不在問活動意願，而是在幫系上慢慢補出真實的人際網絡。能寫多少寫多少，不必完整。</p>
+          <textarea class="field-textarea" id="f_還在聯絡的所友" rows="5" placeholder="請列出你還有在聯絡的新聞所所友姓名。"></textarea>
+        </div>
+      </div>
+
+      <div class="nav-row">
+        <div class="nav-meta">第 3 頁，共 5 頁</div>
+        <div class="btn-row">
+          <button class="btn" type="button" onclick="goTo(1)">返回現況輪廓</button>
+          <button class="btn btn-primary" type="button" onclick="goTo(3)">下一步：聯絡與授權</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="alumni-contact-page">
+      <div class="page-head">
+        <div>
+          <h2>最後決定怎麼分享你。</h2>
+          <p>這一頁是資料使用規則。所辦能不能轉介、公開資料庫能不能列名，都由你自己決定。</p>
+        </div>
+        <div class="page-index">Step 4 of 5</div>
+      </div>
+
+      <div class="section-card alumni-form-section">
+        <div class="section-title">
+          <span>非公開分享：所辦可以在哪些情境下分享你的聯絡方式？</span>
+          <span>未勾選就不主動分享</span>
+        </div>
+        <div class="hint" style="margin-bottom:12px">當有所友或學生有需求詢問所辦時，可由所辦提供聯絡方式。</div>
+        <div class="check-stack">
+          <div class="check-row">
+            <label><input type="checkbox" id="auth1" checked> <span>學弟妹來信詢問職涯</span></label>
+          </div>
+          <div class="check-row">
+            <label><input type="checkbox" id="auth2" checked> <span>所友主動請所辦媒合時</span></label>
+          </div>
+          <div class="check-row">
+            <label><input type="checkbox" id="auth3" checked> <span>所上活動邀請（週年返校、座談）</span></label>
+          </div>
+          <div class="check-row">
+            <label><input type="checkbox" id="auth4"> <span>系所募款或捐款相關聯繫</span></label>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-card alumni-form-section">
+        <div class="section-title">
+          <span>公開分享：在所友公開資料庫中，分享以下你的聯絡方式</span>
+          <span>可個別決定</span>
+        </div>
+        <div class="share-box">
+          <h3>預定公開的資訊</h3>
+          <p>這些欄位會在所友公開資料庫中顯示。預設勾選者可取消，未填者就不會公開。</p>
+          <div class="check-stack">
+            <div class="check-row">
+              <label><input type="checkbox" id="share1" checked> <span>預定按入學所級列出姓名，如：J30-曾子軒</span></label>
+            </div>
+            <div class="check-row">
+              <label><input type="checkbox" id="share2" checked> <span>公司（預設勾選，可取消）</span></label>
+            </div>
+            <div class="check-row">
+              <label><input type="checkbox" id="share3" checked> <span>職稱（預設勾選，可取消）</span></label>
+            </div>
+            <div class="check-row">
+              <label><input type="checkbox" id="share4" checked> <span>E-mail（預設勾選，可取消）</span></label>
+            </div>
+            <div class="check-row">
+              <label><input type="checkbox" id="share5"> <span>Line ID <span class="muted-note">（如步驟一有填寫）</span></span></label>
+            </div>
+            <div class="check-row">
+              <label><input type="checkbox" id="share6"> <span>LinkedIn <span class="muted-note">（如步驟一有填寫）</span></span></label>
+            </div>
+            <div class="check-row">
+              <label><input type="checkbox" id="share7"> <span>電話 <span class="muted-note">（如步驟一有填寫）</span></span></label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-card alumni-form-section">
+        <div class="section-title">
+          <span>更新提醒與留言</span>
+          <span>選填</span>
+        </div>
+        <div class="field-grid">
+          <div class="check-row">
+            <label><input type="checkbox" id="f_同意更新提醒" checked> <span>同意每兩年收到一次資料更新提醒信</span></label>
+          </div>
+          <div class="field-row">
+            <div class="field-label">給系上的話</div>
+            <textarea class="field-textarea" id="f_給系上的話" rows="4" placeholder="有什麼想對系上說的？對活動的建議、想念的老師、或對學弟妹的話。"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-row">
+        <div class="nav-meta">第 4 頁，共 5 頁</div>
+        <div class="btn-row">
+          <button class="btn" type="button" onclick="goTo(2)">返回資源與網絡</button>
+          <button class="btn btn-primary" type="button" onclick="goToReview()">預覽送出</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="page" id="alumni-review-page">
+      <div class="page-head">
+        <div>
+          <h2>這是送出前的最後樣子。</h2>
+          <p>確認沒有填錯、勾錯或多公開的項目後，再按送出。你現在看到的，會盡量接近前面實際勾選的樣貌。</p>
+        </div>
+        <div class="page-index">Step 5 of 5</div>
+      </div>
+
+      <div id="review-summary" class="review-stack"></div>
+      <div id="submit-error" class="error-msg" style="display:none"></div>
+
+      <div class="nav-row">
+        <div class="nav-meta">第 5 頁，共 5 頁</div>
+        <div class="btn-row">
+          <button class="btn" type="button" onclick="goTo(3)">回去修改</button>
+          <button class="btn btn-primary" id="submit-btn" type="button" onclick="submitForm()">確認送出</button>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+const SUBMIT_ENDPOINT = window.ALUMNI_FORM_API_URL || '/api/alumni-submissions';
+const total = 5;
+const statusOptions = ['全職在職', '獨立記者／獨立接案', '創業中', '繼續升學', '職涯轉換中', '暫時休息'];
+const industryOptions = ['非營利／社會企業', '政府／公部門', '政黨／政策／智庫', '國際組織／NGO', '學術研究／教育', '媒體／傳播', '文化／藝術', '金融／顧問', '行銷', '人資', '軟體工程', '硬體工程', '醫療／公衛', '法律／社福'];
+const provideOptions = ['職涯諮詢', '實習／工作機會轉介', '業界人脈引薦', '產學合作', '演講／分享', '創業／社會創新建議'];
+const needOptions = ['找工作／實習機會', '業界人脈', '認識同領域系友', '只是保持聯繫'];
+const schoolOptions = ['定期系友電子報', '系友聚會／返校活動', '與在校生的交流機會', '系友間的橫向媒合', '職缺轉介平台', '不需要，保持聯絡即可'];
+
+let cur = 0;
+
+function goTo(i) {
+  if (i === 4) renderReview();
+  const pages = document.querySelectorAll('.page');
+  pages.forEach((page, index) => page.classList.toggle('active', index === i));
+  cur = i;
+  document.querySelectorAll('[data-step-nav]').forEach((button, index) => {
+    button.classList.remove('active', 'done');
+    if (index < i) button.classList.add('done');
+    if (index === i) button.classList.add('active');
+  });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function toggleOne(button, groupId) {
+  document.querySelectorAll(`#${groupId} .toggle-btn`).forEach((item) => item.classList.remove('on'));
+  button.classList.add('on');
+}
+
+function getToggleVal(groupId) {
+  const active = document.querySelector(`#${groupId} .toggle-btn.on`);
+  return active ? active.textContent.trim() : '';
+}
+
+function getChecked(groupId) {
+  return Array.from(document.querySelectorAll(`#${groupId} input[type="checkbox"]:checked`)).map((checkbox) => checkbox.value);
+}
+
+function esc(text) {
+  return String(text || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function reviewHasValue(value) {
+  return String(value || '').trim().length > 0;
+}
+
+function reviewInputClass(value) {
+  return reviewHasValue(value) ? 'review-filled' : 'review-empty-value';
+}
+
+function renderToggleGroup(options, selected) {
+  return options.map((option) => (
+    `<button class="toggle-btn ${option === selected ? 'on' : 'off'}" type="button" disabled>${esc(option)}</button>`
+  )).join('');
+}
+
+function renderChoiceGrid(options, selectedValues) {
+  return options.map((option) => (
+    `<label class="choice-chip ${selectedValues.includes(option) ? 'on' : 'off'}"><input type="checkbox" disabled ${selectedValues.includes(option) ? 'checked' : ''}> ${esc(option)}</label>`
+  )).join('');
+}
+
+function renderCheckRows(options) {
+  return options.map(([label, checked]) => (
+    `<div class="check-row ${checked ? 'on' : 'off'}"><label><input type="checkbox" disabled ${checked ? 'checked' : ''}> <span>${formatReviewLabel(label)}</span></label></div>`
+  )).join('');
+}
+
+function formatReviewLabel(label) {
+  return esc(label)
+    .replace(/（如步驟一有填寫）/g, '<span class="muted-note">（如步驟一有填寫）</span>');
+}
+
+function renderReview() {
+  const container = document.getElementById('review-summary');
+  const selectedStatus = getToggleVal('g_目前狀態');
+  const industries = getChecked('g_所在行業');
+  if (otherCb.checked && otherInp.value.trim()) industries.push(otherInp.value.trim());
+  const authOptions = [
+    ['學弟妹來信詢問職涯', document.getElementById('auth1').checked],
+    ['所友主動請所辦媒合時', document.getElementById('auth2').checked],
+    ['所上活動邀請（週年返校、座談）', document.getElementById('auth3').checked],
+    ['系所募款或捐款相關聯繫', document.getElementById('auth4').checked],
+  ];
+  const shareOptions = [
+    ['預定按入學所級列出姓名，如：J30-曾子軒', document.getElementById('share1').checked],
+    ['公司', document.getElementById('share2').checked],
+    ['職稱', document.getElementById('share3').checked],
+    ['E-mail', document.getElementById('share4').checked],
+    ['Line ID（如步驟一有填寫）', document.getElementById('share5').checked],
+    ['LinkedIn（如步驟一有填寫）', document.getElementById('share6').checked],
+    ['電話（如步驟一有填寫）', document.getElementById('share7').checked],
+  ];
+
+  container.innerHTML = `
+    <div class="section-card alumni-form-section review-readonly">
+      <div class="section-title"><span>基本資料</span><span>Step 1</span></div>
+      <div class="field-grid">
+        <div class="field-row">
+          <div class="field-label"><span class="required-dot"></span> 姓名</div>
+          <input class="field-input ${reviewInputClass(document.getElementById('f_姓名').value.trim())}" type="text" readonly value="${esc(document.getElementById('f_姓名').value.trim())}">
+        </div>
+        <div class="field-row">
+          <div class="field-label">電子信箱</div>
+          <input class="field-input ${reviewInputClass(document.getElementById('f_電子信箱').value.trim())}" type="text" readonly value="${esc(document.getElementById('f_電子信箱').value.trim())}">
+        </div>
+        <div class="field-row">
+          <div class="field-label">LinkedIn 或個人首頁</div>
+          <input class="field-input ${reviewInputClass(document.getElementById('f_LinkedIn或個人首頁').value.trim())}" type="text" readonly value="${esc(document.getElementById('f_LinkedIn或個人首頁').value.trim())}">
+        </div>
+        <div class="two-col">
+          <div class="field-row">
+            <div class="field-label">手機號碼</div>
+            <input class="field-input ${reviewInputClass(document.getElementById('f_手機號碼').value.trim())}" type="text" readonly value="${esc(document.getElementById('f_手機號碼').value.trim())}">
+          </div>
+          <div class="field-row">
+            <div class="field-label">Line ID</div>
+            <input class="field-input ${reviewInputClass(document.getElementById('f_LineID').value.trim())}" type="text" readonly value="${esc(document.getElementById('f_LineID').value.trim())}">
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="field-row">
+            <div class="field-label">偏好聯絡方式</div>
+            <input class="field-input ${reviewInputClass(document.getElementById('f_偏好聯絡方式').value || '')}" type="text" readonly value="${esc(document.getElementById('f_偏好聯絡方式').value || '')}">
+          </div>
+          <div class="field-row">
+            <div class="field-label">補充聯絡方式</div>
+            <input class="field-input ${reviewInputClass(document.getElementById('f_其他聯絡方式').value.trim())}" type="text" readonly value="${esc(document.getElementById('f_其他聯絡方式').value.trim())}">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card alumni-form-section review-readonly">
+      <div class="section-title"><span>現況輪廓</span><span>Step 2</span></div>
+      <div class="field-grid">
+        <div class="field-row">
+          <div class="field-label">目前狀態</div>
+          <div class="toggle-group">${renderToggleGroup(statusOptions, selectedStatus)}</div>
+        </div>
+        <div class="two-col">
+          <div class="field-row">
+            <div class="field-label">現職職稱</div>
+            <input class="field-input ${reviewInputClass(document.getElementById('f_現職職稱').value.trim())}" type="text" readonly value="${esc(document.getElementById('f_現職職稱').value.trim())}">
+          </div>
+          <div class="field-row">
+            <div class="field-label">服務單位</div>
+            <input class="field-input ${reviewInputClass(document.getElementById('f_服務單位').value.trim())}" type="text" readonly value="${esc(document.getElementById('f_服務單位').value.trim())}">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">如果你是記者或公關，主要跑線／負責領域是？</div>
+          <input class="field-input ${reviewInputClass(document.getElementById('f_主要跑線').value.trim())}" type="text" readonly value="${esc(document.getElementById('f_主要跑線').value.trim())}">
+        </div>
+        <div class="two-col">
+          <div class="field-row">
+            <div class="field-label">所在城市</div>
+            <input class="field-input ${reviewInputClass(document.getElementById('f_所在城市').value.trim())}" type="text" readonly value="${esc(document.getElementById('f_所在城市').value.trim())}">
+          </div>
+          <div class="field-row">
+            <div class="field-label">所在國家／地區</div>
+            <input class="field-input ${reviewInputClass(document.getElementById('f_所在國家地區').value || '')}" type="text" readonly value="${esc(document.getElementById('f_所在國家地區').value || '')}">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">所在行業</div>
+          <div class="choice-grid">${renderChoiceGrid(industryOptions, industries)}</div>
+          ${(otherCb.checked || otherInp.value.trim()) ? `<div class="choice-grid" style="margin-top:10px"><label class="choice-chip ${otherInp.value.trim() ? 'on' : 'off'}"><input type="checkbox" disabled ${otherInp.value.trim() ? 'checked' : ''}> ${esc(otherInp.value.trim() || '其他行業')}</label></div>` : ''}
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card alumni-form-section review-readonly">
+      <div class="section-title"><span>資源與網絡</span><span>Step 3</span></div>
+      <div class="field-grid">
+        <div class="field-row">
+          <div class="field-label">我能提供的資源</div>
+          <div class="choice-grid">${renderChoiceGrid(provideOptions, getChecked('g_能提供的資源'))}</div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">我希望獲得的資源</div>
+          <div class="choice-grid">${renderChoiceGrid(needOptions, getChecked('g_希望獲得的資源'))}</div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">我希望系上提供什麼</div>
+          <div class="choice-grid">${renderChoiceGrid(schoolOptions, getChecked('g_希望系上提供'))}</div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">你還在聯絡哪些所友？</div>
+          <textarea class="field-textarea ${reviewInputClass(document.getElementById('f_還在聯絡的所友').value.trim())}" rows="5" readonly>${esc(document.getElementById('f_還在聯絡的所友').value.trim())}</textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card alumni-form-section review-readonly">
+      <div class="section-title"><span>聯絡與授權</span><span>Step 4</span></div>
+      <div class="field-grid">
+        <div class="field-row">
+          <div class="field-label">非公開分享：所辦可以在哪些情境下分享你的聯絡方式？</div>
+          <div class="check-stack">${renderCheckRows(authOptions)}</div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">公開分享：在所友公開資料庫中，分享以下你的聯絡方式</div>
+          <div class="check-stack">${renderCheckRows(shareOptions)}</div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">更新提醒</div>
+          <div class="check-stack">${renderCheckRows([['同意每兩年收到一次資料更新提醒信', document.getElementById('f_同意更新提醒').checked]])}</div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">給系上的話</div>
+          <textarea class="field-textarea ${reviewInputClass(document.getElementById('f_給系上的話').value.trim())}" rows="4" readonly>${esc(document.getElementById('f_給系上的話').value.trim())}</textarea>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function goToReview() {
+  renderReview();
+  goTo(4);
+}
+
+const otherCb = document.getElementById('other-industry-cb');
+const otherInp = document.getElementById('other-industry-input');
+
+otherCb.addEventListener('change', () => {
+  otherInp.style.opacity = otherCb.checked ? '1' : '0.42';
+  otherInp.style.pointerEvents = otherCb.checked ? 'auto' : 'none';
+  if (!otherCb.checked) otherInp.value = '';
+  if (otherCb.checked) otherInp.focus();
+});
+
+document.querySelectorAll('.choice-chip input[type="checkbox"]').forEach((checkbox) => {
+  checkbox.addEventListener('change', () => {
+    const label = checkbox.closest('.choice-chip');
+    if (label) label.classList.toggle('on', checkbox.checked);
+  });
+  const label = checkbox.closest('.choice-chip');
+  if (label) label.classList.toggle('on', checkbox.checked);
+});
+
+async function submitForm() {
+  const name = document.getElementById('f_姓名').value.trim();
+  const email = document.getElementById('f_電子信箱').value.trim();
+  const btn = document.getElementById('submit-btn');
+  const errorEl = document.getElementById('submit-error');
+
+  if (!name) {
+    alert('請填寫姓名');
+    goTo(0);
+    return;
+  }
+
+  if (email && !email.includes('@')) {
+    alert('Email 格式看起來不正確');
+    goTo(0);
+    return;
+  }
+
+  if (cur !== 4) {
+    goToReview();
+    return;
+  }
+
+  errorEl.style.display = 'none';
+  errorEl.textContent = '';
+  btn.disabled = true;
+  btn.textContent = '送出中…';
+
+  const industries = getChecked('g_所在行業');
+  if (otherCb.checked && otherInp.value.trim()) industries.push(otherInp.value.trim());
+
+  const fields = {
+    '姓名': name,
+    'Email': email,
+    'LinkedIn或個人首頁': document.getElementById('f_LinkedIn或個人首頁').value.trim(),
+    '手機號碼': document.getElementById('f_手機號碼').value.trim(),
+    'Line ID': document.getElementById('f_LineID').value.trim(),
+    '還在聯絡的所友': document.getElementById('f_還在聯絡的所友').value.trim(),
+    '目前狀態': getToggleVal('g_目前狀態'),
+    '現職職稱': document.getElementById('f_現職職稱').value.trim(),
+    '服務單位': document.getElementById('f_服務單位').value.trim(),
+    '主要跑線': document.getElementById('f_主要跑線').value.trim(),
+    '所在城市': document.getElementById('f_所在城市').value.trim(),
+    '所在國家 / 地區': document.getElementById('f_所在國家地區').value,
+    '所在行業': industries,
+    '能提供的資源': getChecked('g_能提供的資源'),
+    '希望獲得的資源': getChecked('g_希望獲得的資源'),
+    '希望系上提供': getChecked('g_希望系上提供'),
+    '偏好聯絡方式': document.getElementById('f_偏好聯絡方式').value,
+    '其他聯絡方式': document.getElementById('f_其他聯絡方式').value.trim(),
+    '非公開分享：學弟妹來信詢問職涯': document.getElementById('auth1').checked,
+    '非公開分享：所友主動請所辦媒合時': document.getElementById('auth2').checked,
+    '非公開分享：所上活動邀請（週年返校、座談）': document.getElementById('auth3').checked,
+    '非公開分享：系所募款或捐款相關聯繫': document.getElementById('auth4').checked,
+    '公開分享：預定按入學所級列出姓名': document.getElementById('share1').checked,
+    '公開分享：公司': document.getElementById('share2').checked,
+    '公開分享：職稱': document.getElementById('share3').checked,
+    '公開分享：E-mail': document.getElementById('share4').checked,
+    '公開分享：Line ID': document.getElementById('share5').checked,
+    '公開分享：LinkedIn': document.getElementById('share6').checked,
+    '公開分享：電話': document.getElementById('share7').checked,
+    '同意更新提醒': document.getElementById('f_同意更新提醒').checked,
+    '給系上的話': document.getElementById('f_給系上的話').value.trim(),
+  };
+
+  Object.keys(fields).forEach((key) => {
+    if (fields[key] === '' || (Array.isArray(fields[key]) && fields[key].length === 0)) {
+      delete fields[key];
+    }
+  });
+
+  try {
+    const response = await fetch(SUBMIT_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fields }),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(data.error || '送出失敗');
+    }
+
+    document.querySelector('.stage').innerHTML = `
+      <div class="success-state">
+        <div class="mark">✓</div>
+        <h2>感謝你留下這一筆。</h2>
+        <p>資料已成功送出。系上收到後會寫入系友資料庫，作為後續系友連結、活動邀請與人際網絡整理的基礎。</p>
+      </div>
+    `;
+  } catch (error) {
+    errorEl.style.display = 'block';
+    errorEl.textContent = `送出失敗，請稍後再試。${error.message ? ` ${error.message}` : ''}`;
+    btn.disabled = false;
+    btn.textContent = '確認送出';
+  }
+}
+</script>
+</body>
+</html>
